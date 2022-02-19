@@ -1,4 +1,4 @@
-﻿using HealthCareServiceApi.Models;
+﻿using ModelsRepository.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -7,20 +7,24 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using HealthCareServiceApi.Services;
+using ModelsRepository;
 
 namespace HealthCareServiceApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class UserController : ControllerBase
+    public class UserController : CustomControllerBase
     {
+        public UserController(IServiceUnit serviceunit) : base(serviceunit)
+        {
+        }
+
         [HttpGet("Admins")]
-        [Authorize(Roles = "Administrator")]
+        //[Authorize(Roles = "Administrator")]
         public IActionResult AdminsEndpoint()
         {
-            var currentUser = GetCurrentUser();
-
-            return Ok($"Hi {currentUser.Name}, you are an {currentUser.Role}");
+            return Ok($"Hi {CurrentUser?.Name}, you are an {CurrentUser?.Role}");
         }
 
 
@@ -28,9 +32,7 @@ namespace HealthCareServiceApi.Controllers
         [Authorize(Roles = "Seller")]
         public IActionResult SellersEndpoint()
         {
-            var currentUser = GetCurrentUser();
-
-            return Ok($"Hi {currentUser.Name}, you are a {currentUser.Role}");
+            return Ok($"Hi {CurrentUser.Name}, you are a {CurrentUser.Role}");
         }
 
         [HttpGet("Public")]
@@ -38,23 +40,6 @@ namespace HealthCareServiceApi.Controllers
         {
             return Ok("Hi, you're on public property");
         }
-
-        private User GetCurrentUser()
-        {
-            var identity = HttpContext.User.Identity as ClaimsIdentity;
-
-            if (identity != null)
-            {
-                var userClaims = identity.Claims;
-
-                return new User
-                {
-                    Name = userClaims.FirstOrDefault(o => o.Type == ClaimTypes.NameIdentifier)?.Value,
-                    Email = userClaims.FirstOrDefault(o => o.Type == ClaimTypes.Email)?.Value,
-                    Role = userClaims.FirstOrDefault(o => o.Type == ClaimTypes.Role)?.Value
-                };
-            }
-            return null;
-        }
+       
     }
 }

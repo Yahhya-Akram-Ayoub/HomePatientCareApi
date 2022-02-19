@@ -17,4 +17,9 @@
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.15.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\DataAccessRepository\DataAccessRepository.csproj" />
+    <ProjectReference Include="..\ModelsRepository\ModelsRepository.csproj" />
+  </ItemGroup>
+
 </Project>

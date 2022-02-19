@@ -1,4 +1,6 @@
-using HealthCareServiceApi.Context;
+
+using DataAccessRepository;
+using DataAccessRepository.Context;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -11,6 +13,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using ModelsRepository;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,6 +24,7 @@ namespace HealthCareServiceApi
 {
     public class Startup
     {
+        readonly string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -31,9 +35,21 @@ namespace HealthCareServiceApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddCors(options =>
+            {
+                options.AddPolicy(name: MyAllowSpecificOrigins,
+                                  builder =>
+                                  {
+                                      builder.WithOrigins("http://localhost:3000")
+                                      .AllowAnyHeader()
+                                      .AllowAnyMethod();
+                                  });
+            });
+
             /*Begin , jwt*/
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-               .AddJwtBearer(options => {
+               .AddJwtBearer(options =>
+               {
                    options.TokenValidationParameters = new TokenValidationParameters
                    {
                        ValidateIssuer = true,
@@ -48,11 +64,16 @@ namespace HealthCareServiceApi
             /*End , jwt*/
             services.AddControllers();
 
-            services.AddDbContext<MainContext>(option => 
-            option.UseSqlServer(
-                Configuration.GetConnectionString("DefaultConnection")
-                )
-            );
+
+            services.AddDbContext<MainContext>(options =>
+                options.UseSqlServer(
+                    Configuration.GetConnectionString("DefaultConnection"),
+                        b => b.MigrationsAssembly(typeof(MainContext).Assembly.FullName)));
+
+            services.AddTransient<IServiceUnit, ServiceUnit>();
+            //services.AddSingleton<IServiceUnit, ServiceUnit>();
+
+           
 
             services.AddSwaggerGen(c =>
             {
@@ -71,17 +92,18 @@ namespace HealthCareServiceApi
             }
 
             app.UseHttpsRedirection();
-
             app.UseRouting();
+            app.UseCors(MyAllowSpecificOrigins);
+
             /*Begin , jwt*/
             app.UseAuthentication();
             /*End , jwt*/
             app.UseAuthorization();
-
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
             });
+            
         }
     }
 }

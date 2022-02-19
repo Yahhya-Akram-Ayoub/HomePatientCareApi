@@ -1,0 +1,12 @@
+E:\Apps\HealthCareServiceApi\ModelsRepository\bin\Debug\net5.0\ModelsRepository.deps.json
+E:\Apps\HealthCareServiceApi\ModelsRepository\bin\Debug\net5.0\ModelsRepository.dll
+E:\Apps\HealthCareServiceApi\ModelsRepository\bin\Debug\net5.0\ref\ModelsRepository.dll
+E:\Apps\HealthCareServiceApi\ModelsRepository\bin\Debug\net5.0\ModelsRepository.pdb
+E:\Apps\HealthCareServiceApi\ModelsRepository\obj\Debug\net5.0\ModelsRepository.csproj.AssemblyReference.cache
+E:\Apps\HealthCareServiceApi\ModelsRepository\obj\Debug\net5.0\ModelsRepository.GeneratedMSBuildEditorConfig.editorconfig
+E:\Apps\HealthCareServiceApi\ModelsRepository\obj\Debug\net5.0\ModelsRepository.AssemblyInfoInputs.cache
+E:\Apps\HealthCareServiceApi\ModelsRepository\obj\Debug\net5.0\ModelsRepository.AssemblyInfo.cs
+E:\Apps\HealthCareServiceApi\ModelsRepository\obj\Debug\net5.0\ModelsRepository.csproj.CoreCompileInputs.cache
+E:\Apps\HealthCareServiceApi\ModelsRepository\obj\Debug\net5.0\ModelsRepository.dll
+E:\Apps\HealthCareServiceApi\ModelsRepository\obj\Debug\net5.0\ref\ModelsRepository.dll
+E:\Apps\HealthCareServiceApi\ModelsRepository\obj\Debug\net5.0\ModelsRepository.pdb
