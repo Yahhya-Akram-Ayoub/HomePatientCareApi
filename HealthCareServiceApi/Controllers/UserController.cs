@@ -1,13 +1,5 @@
-﻿using ModelsRepository.Models;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
-using HealthCareServiceApi.Services;
 using ModelsRepository;
 
 namespace HealthCareServiceApi.Controllers
@@ -21,7 +13,7 @@ namespace HealthCareServiceApi.Controllers
         }
 
         [HttpGet("Admins")]
-        //[Authorize(Roles = "Administrator")]
+        [Authorize]
         public IActionResult AdminsEndpoint()
         {
             return Ok($"Hi {CurrentUser?.Name}, you are an {CurrentUser?.Role}");

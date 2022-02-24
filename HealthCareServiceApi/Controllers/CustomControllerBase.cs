@@ -1,40 +1,36 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using ModelsRepository;
 using ModelsRepository.Models;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 
 namespace HealthCareServiceApi.Controllers
 {
     public class CustomControllerBase : ControllerBase
     {
         protected readonly IServiceUnit ServiceUnit;
-        protected readonly User CurrentUser;
+        //protected readonly ModelsRepository.Models.User CurrentUser ;
         public CustomControllerBase(IServiceUnit serviceunit)
         {
             ServiceUnit = serviceunit;
-            CurrentUser = GetCurrentUser();
+            //CurrentUser = GetCurrentUser();
         }
+        public ModelsRepository.Models.User CurrentUser { get { return GetCurrentUser(); } }
 
-
-        private User GetCurrentUser()
+        [Authorize]
+        private ModelsRepository.Models.User GetCurrentUser()
         {
             try
             {
-                if (HttpContext?.User.Identity != null)
-                {
-                    var identity = HttpContext.User.Identity as ClaimsIdentity;
+                var identity = HttpContext.User.Identity as ClaimsIdentity;
 
-                    if (identity != null)
-                    {
-                        var userClaims = identity.Claims;
-                        string UserId = userClaims.FirstOrDefault(o => o.Type == ClaimTypes.NameIdentifier)?.Value;
-                        return ServiceUnit.Users.Get(x => x.Id.ToString().Equals(UserId));
-                    }
+                if (identity != null)
+                {
+                    var userClaims = identity.Claims;
+                    string UserId = userClaims.FirstOrDefault(o => o.Type == ClaimTypes.NameIdentifier)?.Value;
+                    return ServiceUnit.Users.Get(x => x.Id.ToString().Equals(UserId));
                 }
 
             }

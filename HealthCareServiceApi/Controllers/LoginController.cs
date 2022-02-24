@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using ModelsRepository;
 using HealthCareServiceApi.Services;
 using Microsoft.AspNetCore.Cors;
+using System.Text.Json;
 
 namespace HealthCareServiceApi.Controllers
 {
@@ -54,22 +55,28 @@ namespace HealthCareServiceApi.Controllers
 
         [HttpPost]
         [Route("Register")]
+        [AllowAnonymous]
         [EnableCors("_myAllowSpecificOrigins")]
-        public IActionResult Register([FromBody] User user)
+        public IActionResult Register([FromForm] string strUser, [FromForm] string ServicesInfo)
         {
             try
             {
-                User _user = ServiceUnit.Users.Add(user);
-
-                if (_user != null)
+                User user = JsonSerializer.Deserialize<User>(strUser);
+                if (user != null)
                 {
-                    var token = _JWTService.GenerateToken(user);
-                    return Ok(token);
+                    user.Role = "Admin";
+                    User _user = ServiceUnit.Users.Add(user);
+
+                    if (_user != null)
+                    {
+                        var token = _JWTService.GenerateToken(user);
+                        return Ok(new JsonResult(new { token, user = _user }));
+                    }
                 }
             }
             catch (Exception e)
             {
-                return NotFound();
+                return BadRequest(e.Message.ToString());
             }
 
             return NotFound("User not found");

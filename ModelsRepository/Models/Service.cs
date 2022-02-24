@@ -19,7 +19,9 @@ namespace ModelsRepository.Models
 
         [ForeignKey("service_type")]
         public int TypeId { get; set; }
-
+        public int Gender { get; set; }
+        public int AgeFrom { get; set; }
+        public int AgeTo { get; set; }
         public List<ServiceAttachment> Attachments { get; set; }
         public List<Request> Requests { get; set; }
 

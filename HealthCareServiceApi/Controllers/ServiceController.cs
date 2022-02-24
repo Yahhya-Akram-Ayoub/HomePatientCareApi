@@ -1,11 +1,17 @@
 ﻿using HealthCareServiceApi.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.FileProviders;
 using ModelsRepository;
 using ModelsRepository.Models;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Security.Claims;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace HealthCareServiceApi.Controllers
@@ -14,8 +20,10 @@ namespace HealthCareServiceApi.Controllers
     [ApiController]
     public class ServiceController : CustomControllerBase
     {
-        public ServiceController(IServiceUnit serviceunit) : base(serviceunit)
+        private readonly IConfiguration _config;
+        public ServiceController(IConfiguration config, IServiceUnit serviceunit) : base(serviceunit)
         {
+            _config = config;
         }
 
         [Route("SaveServiceType")]
@@ -35,12 +43,45 @@ namespace HealthCareServiceApi.Controllers
 
         [Route("SaveService")]
         [HttpPost]
-        public IActionResult SaveService(Service _service)
+        [Authorize]
+        public IActionResult SaveService([FromForm] string ServiceType, List<IFormFile> battlePlans)
         {
             try
             {
+                Service _service = JsonSerializer.Deserialize<Service>(ServiceType);
+                _service.UserId = CurrentUser.Id;
                 Service Service = ServiceUnit.Service.Add(_service);
-                return Ok(Service);
+
+                if (battlePlans != null && battlePlans.Count > 0)
+                {
+                    var path = String.Concat(_config["Directories:ServiceAttachment"], Service.Id, "/");
+                    if (!Directory.Exists(path))
+                    {
+                        Directory.CreateDirectory(path);
+                    }
+
+                    foreach (IFormFile file in battlePlans)
+                    {
+                        if (file.Length > 0)
+                        {
+                            var fileName = Path.GetFileName(file.FileName);
+                            //var myUniqueFileName = Convert.ToString(Guid.NewGuid());
+                            //var fileExtension = Path.GetExtension(fileName);
+                            //var newFileName = String.Concat(myUniqueFileName, fileExtension);
+
+                            using (FileStream fs = System.IO.File.Create(String.Concat(path, fileName)))
+                            {
+                                file.CopyTo(fs);
+                                fs.Flush();
+                            }
+
+                            ServiceUnit.ServiceAttachment.Add(new ServiceAttachment()
+                            { Attachment = fileName.ToString(), ServiceId = Service.Id });
+                        }
+                    }
+                }
+
+                return Ok();
             }
             catch (Exception e)
             {
@@ -138,9 +179,9 @@ namespace HealthCareServiceApi.Controllers
             }
         }
 
-        [Route("GetVolunterrRequest")]
+        [Route("GetVolunteerRequest")]
         [HttpPost]
-        public IActionResult GetVolunterrRequest()
+        public IActionResult GetVolunteerRequest()
         {
             try
             {
@@ -149,7 +190,7 @@ namespace HealthCareServiceApi.Controllers
                     ServiceUnit.Request.GetAll(x => (1000 >= CalculateDistance(x.Lattiud, x.Longtiud, user.Lattiud, user.Longtiud)));
 
                 IEnumerable<Request> RequestsAroundScope =
-                  ServiceUnit.Request.GetAll(x => (3000 >= CalculateDistance(x.Lattiud, x.Longtiud, user.Lattiud, user.Longtiud) 
+                  ServiceUnit.Request.GetAll(x => (3000 >= CalculateDistance(x.Lattiud, x.Longtiud, user.Lattiud, user.Longtiud)
                   && 1000 < CalculateDistance(x.Lattiud, x.Longtiud, user.Lattiud, user.Longtiud)));
 
                 foreach (Request request in RequestsInScope)
@@ -187,6 +228,23 @@ namespace HealthCareServiceApi.Controllers
                 return BadRequest(e.Message.ToString());
             }
         }
+        [Route("GetServicesType")]
+        [HttpGet]
+        [Authorize]
+        public IActionResult GetServicesType()
+        {
+            try
+            {
+                User u = CurrentUser;
+                IEnumerable<ServiceType> Services = ServiceUnit.ServiceType.GetAll(x => x.Id != -1);
+                return new JsonResult(new { Services });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message.ToString());
+            }
+        }
+
 
         private double CalculateDistance(double lat1, double long1, double lat2, double long2)
         {
