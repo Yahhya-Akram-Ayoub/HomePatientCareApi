@@ -44,11 +44,11 @@ namespace HealthCareServiceApi.Controllers
         [Route("SaveService")]
         [HttpPost]
         [Authorize]
-        public IActionResult SaveService([FromForm] string ServiceType, List<IFormFile> battlePlans)
+        public IActionResult SaveService([FromForm] string service, List<IFormFile> battlePlans)
         {
             try
             {
-                Service _service = JsonSerializer.Deserialize<Service>(ServiceType);
+                Service _service = JsonSerializer.Deserialize<Service>(service);
                 _service.UserId = CurrentUser.Id;
                 Service Service = ServiceUnit.Service.Add(_service);
 
@@ -91,10 +91,28 @@ namespace HealthCareServiceApi.Controllers
 
         [Route("SaveRequest")]
         [HttpPost]
-        public IActionResult SaveRequest(Request _request)
+        public IActionResult SaveRequest([FromForm] string request, [FromForm] bool CurrentLocation, [FromForm] bool CurrentInfo)
+
+
         {
             try
             {
+                Request _r = JsonSerializer.Deserialize<Request>(request);
+                Request _request = new Request()
+                {
+                    Date = new DateTime(),
+                    SenderId = CurrentUser.Id,
+                    Description = _r.Description,
+                    Lattiud = CurrentLocation ? _r.Lattiud : CurrentUser.Lat,
+                    Longtiud = CurrentLocation ? _r.Longtiud : CurrentUser.Lng,
+                    ExpireTime = _r.ExpireTime,
+                    SeviceTypeId = _r.SeviceTypeId,
+                    PGender = CurrentInfo ? _r.PGender : CurrentUser.Gender,
+                    PDescription = _r.PDescription,
+                    PAge = CurrentInfo ? _r.PAge : (DateTime.Today.Year - CurrentUser.BirthDate.Year),
+                    PName = CurrentInfo ? _r.PName : CurrentUser.Name,
+                    VGender = _r.VGender
+                };
                 Request Request = ServiceUnit.Request.Add(_request);
                 return Ok(Request);
             }
@@ -180,20 +198,26 @@ namespace HealthCareServiceApi.Controllers
         }
 
         [Route("GetVolunteerRequest")]
-        [HttpPost]
+        [Authorize]
+        [HttpGet]
         public IActionResult GetVolunteerRequest()
         {
             try
             {
                 User user = CurrentUser;
-                IEnumerable<Request> RequestsInScope =
-                    ServiceUnit.Request.GetAll(x => (1000 >= CalculateDistance(x.Lattiud, x.Longtiud, user.Lattiud, user.Longtiud)));
+                List<Request> RequestsInScope = ServiceUnit.Request.GetAll(x => !x.IsAccepted).ToList();
+                List<Service> UserServices = ServiceUnit.Service.GetAll(x => x.UserId == CurrentUser.Id).ToList();
 
-                IEnumerable<Request> RequestsAroundScope =
-                  ServiceUnit.Request.GetAll(x => (3000 >= CalculateDistance(x.Lattiud, x.Longtiud, user.Lattiud, user.Longtiud)
-                  && 1000 < CalculateDistance(x.Lattiud, x.Longtiud, user.Lattiud, user.Longtiud)));
+                List<Request> InScopeRequests = RequestsInScope.FindAll(x =>
+                        //  UserServices.Exists(e => e.TypeId == x.Id && x.PAge <= e.AgeTo && x.PAge >= e.AgeFrom) &&
+                        (1000 >= CalculateDistance(x.Lattiud, x.Longtiud, user.Lat, user.Lng)));
 
-                foreach (Request request in RequestsInScope)
+                List<Request> AroundScopeRequests = RequestsInScope.FindAll(x =>
+                        // UserServices.Exists(e => e.TypeId == x.Id && x.PAge <= e.AgeTo && x.PAge >= e.AgeFrom) &&
+                        (1000 < CalculateDistance(x.Lattiud, x.Longtiud, user.Lat, user.Lng)) &&
+                        (3000 >= CalculateDistance(x.Lattiud, x.Longtiud, user.Lat, user.Lng)));
+
+                foreach (Request request in InScopeRequests)
                 {
                     int count = ServiceUnit.RequestReceivers.Count(x => x.RequestId == request.Id && x.UserId == user.Id);
                     if (count == 0)
@@ -202,12 +226,12 @@ namespace HealthCareServiceApi.Controllers
                         {
                             RequestId = request.Id,
                             UserId = user.Id,
-                            distance = CalculateDistance(request.Lattiud, request.Longtiud, user.Lattiud, user.Longtiud)
+                            distance = CalculateDistance(request.Lattiud, request.Longtiud, user.Lat, user.Lng)
                         });
                     }
                 }
 
-                foreach (Request request in RequestsAroundScope)
+                foreach (Request request in AroundScopeRequests)
                 {
                     int count = ServiceUnit.RequestReceivers.Count(x => x.RequestId == request.Id && x.UserId == user.Id);
                     if (count == 0)
@@ -216,12 +240,12 @@ namespace HealthCareServiceApi.Controllers
                         {
                             RequestId = request.Id,
                             UserId = user.Id,
-                            distance = CalculateDistance(request.Lattiud, request.Longtiud, user.Lattiud, user.Longtiud)
+                            distance = CalculateDistance(request.Lattiud, request.Longtiud, user.Lat, user.Lng)
                         });
                     }
                 }
 
-                return new JsonResult(RequestsInScope, RequestsAroundScope);
+                return Ok(new JsonResult(new { InScopeRequests, AroundScopeRequests }));
             }
             catch (Exception e)
             {
@@ -244,7 +268,21 @@ namespace HealthCareServiceApi.Controllers
                 return BadRequest(e.Message.ToString());
             }
         }
-
+        [Route("GetRequest")]
+        [HttpGet]
+        [Authorize]
+        public IActionResult GetRequest(int id)
+        {
+            try
+            {
+                Request _request = ServiceUnit.Request.GetById(id);
+                return Ok(new JsonResult(new { request = _request }));
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message.ToString());
+            }
+        }
 
         private double CalculateDistance(double lat1, double long1, double lat2, double long2)
         {

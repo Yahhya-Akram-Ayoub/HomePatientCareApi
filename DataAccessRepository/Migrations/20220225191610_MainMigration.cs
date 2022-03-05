@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace DataAccessRepository.Migrations
 {
-    public partial class MainSchema : Migration
+    public partial class MainMigration : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -24,6 +24,27 @@ namespace DataAccessRepository.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "User",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(60)", maxLength: 60, nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Password = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ConfirmPassword = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Role = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Phone = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    BirthDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Gender = table.Column<int>(type: "int", nullable: false),
+                    Lat = table.Column<double>(type: "float", nullable: false),
+                    Lng = table.Column<double>(type: "float", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_User", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "VolunteerInfo",
                 columns: table => new
                 {
@@ -40,7 +61,7 @@ namespace DataAccessRepository.Migrations
                         column: x => x.UserId,
                         principalTable: "User",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.NoAction);
                 });
 
             migrationBuilder.CreateTable(
@@ -50,7 +71,13 @@ namespace DataAccessRepository.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    TypeId = table.Column<int>(type: "int", nullable: false)
+                    TypeId = table.Column<int>(type: "int", nullable: false),
+                    Gender = table.Column<int>(type: "int", nullable: false),
+                    AgeFrom = table.Column<int>(type: "int", nullable: false),
+                    AgeTo = table.Column<int>(type: "int", nullable: false),
+                    Lat = table.Column<double>(type: "float", nullable: false),
+                    Lng = table.Column<double>(type: "float", nullable: false),
+                    VolunteerInfoId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -66,7 +93,13 @@ namespace DataAccessRepository.Migrations
                         column: x => x.UserId,
                         principalTable: "User",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.NoAction);
+                    table.ForeignKey(
+                        name: "FK_Service_VolunteerInfo_VolunteerInfoId",
+                        column: x => x.VolunteerInfoId,
+                        principalTable: "VolunteerInfo",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -233,7 +266,8 @@ namespace DataAccessRepository.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    RequestId = table.Column<int>(type: "int", nullable: false)
+                    RequestId = table.Column<int>(type: "int", nullable: false),
+                    distance = table.Column<double>(type: "float", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -350,6 +384,11 @@ namespace DataAccessRepository.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Service_VolunteerInfoId",
+                table: "Service",
+                column: "VolunteerInfoId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ServiceAttachment_ServiceId",
                 table: "ServiceAttachment",
                 column: "ServiceId");
@@ -367,7 +406,8 @@ namespace DataAccessRepository.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_VolunteerInfo_UserId",
                 table: "VolunteerInfo",
-                column: "UserId");
+                column: "UserId",
+                unique: true);
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -394,9 +434,6 @@ namespace DataAccessRepository.Migrations
                 name: "UserRating");
 
             migrationBuilder.DropTable(
-                name: "VolunteerInfo");
-
-            migrationBuilder.DropTable(
                 name: "Request");
 
             migrationBuilder.DropTable(
@@ -404,6 +441,12 @@ namespace DataAccessRepository.Migrations
 
             migrationBuilder.DropTable(
                 name: "ServiceType");
+
+            migrationBuilder.DropTable(
+                name: "VolunteerInfo");
+
+            migrationBuilder.DropTable(
+                name: "User");
         }
     }
 }

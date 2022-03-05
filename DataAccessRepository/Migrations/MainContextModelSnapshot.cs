@@ -156,17 +156,37 @@ namespace DataAccessRepository.Migrations
                     b.Property<double>("Longtiud")
                         .HasColumnType("float");
 
+                    b.Property<int>("PAge")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PDescription")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("PGender")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PName")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<Guid>("SenderId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("SeviceId")
+                    b.Property<int?>("ServiceId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SeviceTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("VGender")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("SenderId");
 
-                    b.HasIndex("SeviceId");
+                    b.HasIndex("ServiceId");
+
+                    b.HasIndex("SeviceTypeId");
 
                     b.ToTable("Request");
                 });
@@ -202,6 +222,21 @@ namespace DataAccessRepository.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<int>("AgeFrom")
+                        .HasColumnType("int");
+
+                    b.Property<int>("AgeTo")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Gender")
+                        .HasColumnType("int");
+
+                    b.Property<double>("Lat")
+                        .HasColumnType("float");
+
+                    b.Property<double>("Lng")
+                        .HasColumnType("float");
 
                     b.Property<int>("TypeId")
                         .HasColumnType("int");
@@ -285,10 +320,10 @@ namespace DataAccessRepository.Migrations
                     b.Property<int>("Gender")
                         .HasColumnType("int");
 
-                    b.Property<double>("Lattiud")
+                    b.Property<double>("Lat")
                         .HasColumnType("float");
 
-                    b.Property<double>("Longtiud")
+                    b.Property<double>("Lng")
                         .HasColumnType("float");
 
                     b.Property<string>("Name")
@@ -439,13 +474,17 @@ namespace DataAccessRepository.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ModelsRepository.Models.Service", "sevice")
+                    b.HasOne("ModelsRepository.Models.Service", null)
                         .WithMany("Requests")
-                        .HasForeignKey("SeviceId")
+                        .HasForeignKey("ServiceId");
+
+                    b.HasOne("ModelsRepository.Models.ServiceType", "seviceType")
+                        .WithMany()
+                        .HasForeignKey("SeviceTypeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("sevice");
+                    b.Navigation("seviceType");
 
                     b.Navigation("user");
                 });

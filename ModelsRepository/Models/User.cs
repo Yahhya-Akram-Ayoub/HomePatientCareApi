@@ -31,8 +31,10 @@ namespace ModelsRepository.Models
         [Required, DataType(DataType.DateTime)]
         public DateTime BirthDate { get; set; }
         public int Gender { get; set; }
-        public double Lattiud { get; set; }
-        public double Longtiud { get; set; }
+        [Required]
+        public double Lat { get; set; }
+        [Required]
+        public double Lng { get; set; }
 
         public virtual VolunteerInfo volenteerInfo { get; set; }
     }

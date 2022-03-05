@@ -55,5 +55,10 @@ namespace DataAccessRepository.Repositries
 
             return query.Count(exp);
         }
+
+        public T GetUserBy(Expression<Func<T, bool>> exp)
+        {
+            return _context.Set<T>().FirstOrDefault(exp);
+        }
     }
 }

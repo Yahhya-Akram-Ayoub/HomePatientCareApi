@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccessRepository.Migrations
 {
     [DbContext(typeof(MainContext))]
-    [Migration("20220220204045_editModels")]
-    partial class editModels
+    [Migration("20220225191610_MainMigration")]
+    partial class MainMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -205,6 +205,21 @@ namespace DataAccessRepository.Migrations
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
+                    b.Property<int>("AgeFrom")
+                        .HasColumnType("int");
+
+                    b.Property<int>("AgeTo")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Gender")
+                        .HasColumnType("int");
+
+                    b.Property<double>("Lat")
+                        .HasColumnType("float");
+
+                    b.Property<double>("Lng")
+                        .HasColumnType("float");
+
                     b.Property<int>("TypeId")
                         .HasColumnType("int");
 
@@ -287,10 +302,10 @@ namespace DataAccessRepository.Migrations
                     b.Property<int>("Gender")
                         .HasColumnType("int");
 
-                    b.Property<double>("Lattiud")
+                    b.Property<double>("Lat")
                         .HasColumnType("float");
 
-                    b.Property<double>("Longtiud")
+                    b.Property<double>("Lng")
                         .HasColumnType("float");
 
                     b.Property<string>("Name")

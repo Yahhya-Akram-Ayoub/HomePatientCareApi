@@ -17,11 +17,19 @@ namespace ModelsRepository.Models
         [ForeignKey("user")]
         public Guid UserId { get; set; }
 
+        [Required]
         [ForeignKey("service_type")]
         public int TypeId { get; set; }
+        [Required]
         public int Gender { get; set; }
+        [Required]
         public int AgeFrom { get; set; }
+        [Required]
         public int AgeTo { get; set; }
+        [Required]
+        public double Lat { get; set; }
+        [Required]
+        public double Lng { get; set; }
         public List<ServiceAttachment> Attachments { get; set; }
         public List<Request> Requests { get; set; }
 

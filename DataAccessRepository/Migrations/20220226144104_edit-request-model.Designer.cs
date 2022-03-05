@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccessRepository.Migrations
 {
     [DbContext(typeof(MainContext))]
-    [Migration("20220217193551_MainSchema")]
-    partial class MainSchema
+    [Migration("20220226144104_edit-request-model")]
+    partial class editrequestmodel
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -161,14 +161,19 @@ namespace DataAccessRepository.Migrations
                     b.Property<Guid>("SenderId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("SeviceId")
+                    b.Property<int?>("ServiceId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SeviceTypeId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("SenderId");
 
-                    b.HasIndex("SeviceId");
+                    b.HasIndex("ServiceId");
+
+                    b.HasIndex("SeviceTypeId");
 
                     b.ToTable("Request");
                 });
@@ -186,6 +191,9 @@ namespace DataAccessRepository.Migrations
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<double>("distance")
+                        .HasColumnType("float");
+
                     b.HasKey("Id");
 
                     b.HasIndex("RequestId");
@@ -202,17 +210,37 @@ namespace DataAccessRepository.Migrations
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
+                    b.Property<int>("AgeFrom")
+                        .HasColumnType("int");
+
+                    b.Property<int>("AgeTo")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Gender")
+                        .HasColumnType("int");
+
+                    b.Property<double>("Lat")
+                        .HasColumnType("float");
+
+                    b.Property<double>("Lng")
+                        .HasColumnType("float");
+
                     b.Property<int>("TypeId")
                         .HasColumnType("int");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int?>("VolunteerInfoId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("TypeId");
 
                     b.HasIndex("UserId");
+
+                    b.HasIndex("VolunteerInfoId");
 
                     b.ToTable("Service");
                 });
@@ -270,8 +298,20 @@ namespace DataAccessRepository.Migrations
                     b.Property<DateTime>("BirthDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("ConfirmPassword")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Email")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Gender")
+                        .HasColumnType("int");
+
+                    b.Property<double>("Lat")
+                        .HasColumnType("float");
+
+                    b.Property<double>("Lng")
+                        .HasColumnType("float");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -339,7 +379,8 @@ namespace DataAccessRepository.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId")
+                        .IsUnique();
 
                     b.ToTable("VolunteerInfo");
                 });
@@ -420,13 +461,17 @@ namespace DataAccessRepository.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ModelsRepository.Models.Service", "sevice")
+                    b.HasOne("ModelsRepository.Models.Service", null)
                         .WithMany("Requests")
-                        .HasForeignKey("SeviceId")
+                        .HasForeignKey("ServiceId");
+
+                    b.HasOne("ModelsRepository.Models.ServiceType", "seviceType")
+                        .WithMany()
+                        .HasForeignKey("SeviceTypeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("sevice");
+                    b.Navigation("seviceType");
 
                     b.Navigation("user");
                 });
@@ -463,6 +508,10 @@ namespace DataAccessRepository.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("ModelsRepository.Models.VolunteerInfo", null)
+                        .WithMany("Services")
+                        .HasForeignKey("VolunteerInfoId");
 
                     b.Navigation("service_type");
 
@@ -502,8 +551,8 @@ namespace DataAccessRepository.Migrations
             modelBuilder.Entity("ModelsRepository.Models.VolunteerInfo", b =>
                 {
                     b.HasOne("ModelsRepository.Models.User", "user")
-                        .WithMany()
-                        .HasForeignKey("UserId")
+                        .WithOne("volenteerInfo")
+                        .HasForeignKey("ModelsRepository.Models.VolunteerInfo", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -528,6 +577,16 @@ namespace DataAccessRepository.Migrations
                     b.Navigation("Attachments");
 
                     b.Navigation("Requests");
+                });
+
+            modelBuilder.Entity("ModelsRepository.Models.User", b =>
+                {
+                    b.Navigation("volenteerInfo");
+                });
+
+            modelBuilder.Entity("ModelsRepository.Models.VolunteerInfo", b =>
+                {
+                    b.Navigation("Services");
                 });
 #pragma warning restore 612, 618
         }

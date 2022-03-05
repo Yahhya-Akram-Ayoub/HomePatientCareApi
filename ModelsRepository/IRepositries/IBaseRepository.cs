@@ -11,6 +11,7 @@ namespace ModelsRepository.IRepositries
     {
         T GetById(int id);
         T CheckUserLogin(Expression<Func<T, bool>> user);
+        T GetUserBy(Expression<Func<T, bool>> exp);
         T Get(Expression<Func<T, bool>> exp);
         IEnumerable<T> GetAll(Expression<Func<T, bool>> exp);
         T Add(T entity);

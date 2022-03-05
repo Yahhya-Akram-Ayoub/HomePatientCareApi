@@ -23,11 +23,21 @@ namespace ModelsRepository.Models
         [ForeignKey("user")]
         public Guid SenderId { get; set; }
         [Required]
-        [ForeignKey("sevice")]
-        public int SeviceId { get; set; }
+        [ForeignKey("seviceType")]
+        public int SeviceTypeId { get; set; }
         [DataType(DataType.DateTime)]
         public DateTime ExpireTime { get; set; }
         public bool IsAccepted { get; set; }
+
+        /* Patient */
+        public string PName { get; set; }
+        public int PAge { get; set; }
+        public string PDescription { get; set; }
+        public int PGender { get; set; }
+        /* End ,Patient */
+        /* Volunteer */
+        public int VGender { get; set; }
+        /* End ,Volunteer */
         public AcceptedRequest AcceptedInfo { get; set; }
         public FailedRequest FailedInfo { get; set; }
         public DeliveredRequest DeliveredInfo { get; set; }
@@ -36,7 +46,7 @@ namespace ModelsRepository.Models
         public List<UserRating> Rates { get; set; }
 
         public virtual  User user { get; set; }
-        public virtual  Service sevice { get; set; }
+        public virtual  ServiceType seviceType { get; set; }
 
     }
 }

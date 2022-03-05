@@ -42,6 +42,7 @@ namespace HealthCareServiceApi.Controllers
                 if (user != null)
                 {
                     string token = _JWTService.GenerateToken(user);
+                    User _user = ServiceUnit.Users.GetUserBy(x => x.Email == user.Email);
                     return Ok(new JsonResult(new { token, user }));
                 }
             }
