@@ -10,6 +10,8 @@ namespace ModelsRepository.IRepositries
     public interface IBaseRepository<T> where T : class
     {
         T GetById(int id);
+        void SaveChanges();
+        T RemoveObj(T obj);
         T CheckUserLogin(Expression<Func<T, bool>> user);
         T GetUserBy(Expression<Func<T, bool>> exp);
         T Get(Expression<Func<T, bool>> exp);

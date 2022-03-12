@@ -37,7 +37,7 @@ namespace HealthCareServiceApi.Controllers
         {
             try
             {
-                User user = _JWTService.ChechAuthenticate(new User() { Email = Email, Password = Password });
+                User user = _JWTService.ChechAuthenticate(new User() { Email = Email, Phone = Email, Password = Password });
 
                 if (user != null)
                 {
@@ -65,7 +65,7 @@ namespace HealthCareServiceApi.Controllers
                 User user = JsonSerializer.Deserialize<User>(strUser);
                 if (user != null)
                 {
-                    user.Role = "Admin";
+                    user.Role = "User";
                     User _user = ServiceUnit.Users.Add(user);
 
                     if (_user != null)

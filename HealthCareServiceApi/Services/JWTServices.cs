@@ -36,7 +36,7 @@ namespace HealthCareServiceApi.Services
             var token = new JwtSecurityToken(_config["Jwt:Issuer"],
               _config["Jwt:Audience"],
               claims,
-              expires: DateTime.Now.AddMinutes(1000*200),
+              expires: DateTime.Now.AddMinutes(1000 * 200),
               signingCredentials: credentials);
 
             return new JwtSecurityTokenHandler().WriteToken(token);
@@ -44,7 +44,10 @@ namespace HealthCareServiceApi.Services
 
         public User ChechAuthenticate(User userLogin)
         {
-            var currentUser = _serviceunit.Users.CheckUserLogin(o => o.Email.ToLower() == userLogin.Email.ToLower() && o.Password == userLogin.Password);
+            var currentUser =
+                _serviceunit.Users.CheckUserLogin(o =>
+                (o.Email.ToLower() == userLogin.Email.ToLower() || o.Phone == userLogin.Phone)
+            && o.Password == userLogin.Password);
 
             if (currentUser != null)
             {

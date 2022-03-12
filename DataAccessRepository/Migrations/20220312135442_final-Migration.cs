@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace DataAccessRepository.Migrations
 {
-    public partial class MainMigration : Migration
+    public partial class finalMigration : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -61,7 +61,7 @@ namespace DataAccessRepository.Migrations
                         column: x => x.UserId,
                         principalTable: "User",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -93,7 +93,7 @@ namespace DataAccessRepository.Migrations
                         column: x => x.UserId,
                         principalTable: "User",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Service_VolunteerInfo_VolunteerInfoId",
                         column: x => x.VolunteerInfoId,
@@ -113,17 +113,29 @@ namespace DataAccessRepository.Migrations
                     Lattiud = table.Column<double>(type: "float", nullable: false),
                     Longtiud = table.Column<double>(type: "float", nullable: false),
                     SenderId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    SeviceId = table.Column<int>(type: "int", nullable: false),
+                    SeviceTypeId = table.Column<int>(type: "int", nullable: false),
                     ExpireTime = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    IsAccepted = table.Column<bool>(type: "bit", nullable: false)
+                    status = table.Column<int>(type: "int", nullable: false),
+                    PName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PAge = table.Column<int>(type: "int", nullable: false),
+                    PDescription = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PGender = table.Column<int>(type: "int", nullable: false),
+                    VGender = table.Column<int>(type: "int", nullable: false),
+                    ServiceId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Request", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Request_Service_SeviceId",
-                        column: x => x.SeviceId,
+                        name: "FK_Request_Service_ServiceId",
+                        column: x => x.ServiceId,
                         principalTable: "Service",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Request_ServiceType_SeviceTypeId",
+                        column: x => x.SeviceTypeId,
+                        principalTable: "ServiceType",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
@@ -131,7 +143,7 @@ namespace DataAccessRepository.Migrations
                         column: x => x.SenderId,
                         principalTable: "User",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -296,6 +308,7 @@ namespace DataAccessRepository.Migrations
                     Date = table.Column<DateTime>(type: "datetime2", nullable: false),
                     RequestId = table.Column<int>(type: "int", nullable: false),
                     UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Value = table.Column<double>(type: "float", nullable: false),
                     IsVolunteer = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
@@ -359,9 +372,14 @@ namespace DataAccessRepository.Migrations
                 column: "SenderId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Request_SeviceId",
+                name: "IX_Request_ServiceId",
                 table: "Request",
-                column: "SeviceId");
+                column: "ServiceId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Request_SeviceTypeId",
+                table: "Request",
+                column: "SeviceTypeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_RequestReceivers_RequestId",

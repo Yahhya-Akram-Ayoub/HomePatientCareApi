@@ -44,13 +44,32 @@ namespace HealthCareServiceApi.Controllers
         [Route("SaveService")]
         [HttpPost]
         [Authorize]
-        public IActionResult SaveService([FromForm] string service, List<IFormFile> battlePlans)
+        public IActionResult SaveService([FromForm] string service, List<IFormFile> battlePlans, [FromForm] int Id)
         {
             try
             {
+                User user = ServiceUnit.Users.GetUserBy(x => x.Id == CurrentUser.Id);
                 Service _service = JsonSerializer.Deserialize<Service>(service);
-                _service.UserId = CurrentUser.Id;
-                Service Service = ServiceUnit.Service.Add(_service);
+                Service Service;
+                if (Id == 0)
+                {
+                    _service.UserId = CurrentUser.Id;
+                    Service = ServiceUnit.Service.Add(_service);
+                }
+                else
+                {
+                    Service = ServiceUnit.Service.GetById(Id);
+                    Service.Lat = _service.Lat;
+                    Service.Lat = _service.Lng;
+                    Service.AgeFrom = _service.AgeFrom;
+                    Service.AgeTo = _service.AgeTo;
+                    Service.TypeId = _service.TypeId;
+                    Service.Attachments = _service.Attachments;
+                    ServiceUnit.Service.SaveChanges();
+                }
+
+                user.Role = "Volunteer";
+                ServiceUnit.Users.SaveChanges();
 
                 if (battlePlans != null && battlePlans.Count > 0)
                 {
@@ -89,11 +108,48 @@ namespace HealthCareServiceApi.Controllers
             }
         }
 
+        [Route("RemoveService")]
+        [HttpPost]
+        [Authorize]
+        public IActionResult RemoveService([FromForm] int Id)
+        {
+            try
+            {
+                ServiceUnit.Service.RemoveObj(ServiceUnit.Service.GetById(Id));
+                User user = ServiceUnit.Users.GetUserBy(x => x.Id == CurrentUser.Id);
+                List<Service> services = ServiceUnit.Service.GetAll(x => x.UserId == user.Id).ToList();
+               
+                if (services.Count == 0)
+                {
+                    user.Role = "User";
+                    ServiceUnit.Users.SaveChanges();
+                }
+
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message.ToString());
+            }
+        }
+
+        public double GetUserRate(Guid id)
+        {
+            List<UserRating> rates = ServiceUnit.UserRating.GetAll(x => x.request.SenderId == id /*&& !x.IsVolunteer*/).ToList();
+            if (rates.Count > 5)
+            {
+                return rates.Sum(x => x.Value) / rates.Count;
+            }
+            else
+            {
+                return 2.0;
+            }
+        }
+
         [Route("SaveRequest")]
         [HttpPost]
+        [Authorize]
         public IActionResult SaveRequest([FromForm] string request, [FromForm] bool CurrentLocation, [FromForm] bool CurrentInfo)
-
-
         {
             try
             {
@@ -103,15 +159,15 @@ namespace HealthCareServiceApi.Controllers
                     Date = new DateTime(),
                     SenderId = CurrentUser.Id,
                     Description = _r.Description,
-                    Lattiud = CurrentLocation ? _r.Lattiud : CurrentUser.Lat,
-                    Longtiud = CurrentLocation ? _r.Longtiud : CurrentUser.Lng,
+                    Lattiud = !CurrentLocation ? _r.Lattiud : CurrentUser.Lat,
+                    Longtiud = !CurrentLocation ? _r.Longtiud : CurrentUser.Lng,
                     ExpireTime = _r.ExpireTime,
                     SeviceTypeId = _r.SeviceTypeId,
-                    PGender = CurrentInfo ? _r.PGender : CurrentUser.Gender,
+                    PGender = !CurrentInfo ? _r.PGender : CurrentUser.Gender,
                     PDescription = _r.PDescription,
-                    PAge = CurrentInfo ? _r.PAge : (DateTime.Today.Year - CurrentUser.BirthDate.Year),
-                    PName = CurrentInfo ? _r.PName : CurrentUser.Name,
-                    VGender = _r.VGender
+                    PAge = !CurrentInfo ? _r.PAge : (DateTime.Today.Year - CurrentUser.BirthDate.Year),
+                    PName = !CurrentInfo ? _r.PName : CurrentUser.Name,
+                    VGender = _r.VGender,
                 };
                 Request Request = ServiceUnit.Request.Add(_request);
                 return Ok(Request);
@@ -205,12 +261,11 @@ namespace HealthCareServiceApi.Controllers
             try
             {
                 User user = CurrentUser;
-                List<Request> RequestsInScope = ServiceUnit.Request.GetAll(x => !x.IsAccepted).ToList();
+                List<Request> RequestsInScope = ServiceUnit.Request.GetAll(x => x.status == 0).ToList();
                 List<Service> UserServices = ServiceUnit.Service.GetAll(x => x.UserId == CurrentUser.Id).ToList();
-
                 List<Request> InScopeRequests = RequestsInScope.FindAll(x =>
-                        //  UserServices.Exists(e => e.TypeId == x.Id && x.PAge <= e.AgeTo && x.PAge >= e.AgeFrom) &&
-                        (1000 >= CalculateDistance(x.Lattiud, x.Longtiud, user.Lat, user.Lng)));
+          //  UserServices.Exists(e => e.TypeId == x.Id && x.PAge <= e.AgeTo && x.PAge >= e.AgeFrom) &&
+          (1000 >= CalculateDistance(x.Lattiud, x.Longtiud, user.Lat, user.Lng)));
 
                 List<Request> AroundScopeRequests = RequestsInScope.FindAll(x =>
                         // UserServices.Exists(e => e.TypeId == x.Id && x.PAge <= e.AgeTo && x.PAge >= e.AgeFrom) &&
@@ -219,6 +274,7 @@ namespace HealthCareServiceApi.Controllers
 
                 foreach (Request request in InScopeRequests)
                 {
+                    request.seviceType = ServiceUnit.ServiceType.GetById(request.SeviceTypeId);
                     int count = ServiceUnit.RequestReceivers.Count(x => x.RequestId == request.Id && x.UserId == user.Id);
                     if (count == 0)
                     {
@@ -233,6 +289,7 @@ namespace HealthCareServiceApi.Controllers
 
                 foreach (Request request in AroundScopeRequests)
                 {
+                    request.seviceType = ServiceUnit.ServiceType.GetById(request.SeviceTypeId);
                     int count = ServiceUnit.RequestReceivers.Count(x => x.RequestId == request.Id && x.UserId == user.Id);
                     if (count == 0)
                     {
@@ -252,6 +309,178 @@ namespace HealthCareServiceApi.Controllers
                 return BadRequest(e.Message.ToString());
             }
         }
+
+
+        [Route("GetProvidedList")]
+        [Authorize]
+        [HttpGet]
+        public IActionResult GetProvidedList()
+        {
+            try
+            {
+                User user = CurrentUser;
+                List<Service> Services = ServiceUnit.Service.GetAll(x => x.UserId == user.Id).ToList();
+                List<ServiceType> ServiceTypes = ServiceUnit.ServiceType.GetAll(x => x.Id != -1).ToList();
+
+                return Ok(new JsonResult(new { Services, ServiceTypes }));
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message.ToString());
+            }
+        }
+
+        [Route("GetVolunteerRequests")]
+        [Authorize]
+        [HttpGet]
+        public IActionResult GetVolunteerRequests()
+        {
+            try
+            {
+                User user = CurrentUser;
+                List<AcceptedRequest> AcceptedRequests =
+                    ServiceUnit.AcceptedRequest.GetAll(x => x.VolunteerId == CurrentUser.Id).ToList();
+                List<Request> requests = new List<Request>();
+                foreach (AcceptedRequest acr in AcceptedRequests)
+                {
+                    Request request = ServiceUnit.Request.GetById(acr.RequestId);
+                    request.seviceType = ServiceUnit.ServiceType.GetById(request.SeviceTypeId);
+                    requests.Add(request);
+                }
+
+                return Ok(new JsonResult(new { Success = true, AcceptedRequests, requests }));
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message.ToString());
+            }
+        }
+
+        [Route("GetUserRequests")]
+        [Authorize]
+        [HttpGet]
+        public IActionResult GetUserRequests()
+        {
+            try
+            {
+                User user = CurrentUser;
+                List<Request> requests = ServiceUnit.Request.GetAll(x => x.SenderId == CurrentUser.Id).ToList(); ;
+
+                List<AcceptedRequest> AcceptedRequests = new List<AcceptedRequest>();
+
+                foreach (Request acr in requests)
+                {
+                    AcceptedRequest acceptedRequest = ServiceUnit.AcceptedRequest.GetUserBy(x => x.RequestId == acr.Id);
+                    acr.seviceType = ServiceUnit.ServiceType.GetById(acr.SeviceTypeId);
+                    AcceptedRequests.Add(acceptedRequest);
+                }
+
+                return Ok(new JsonResult(new { Success = true, AcceptedRequests, requests }));
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message.ToString());
+            }
+        }
+
+        [Route("UserReportVolunteer")]
+        [Authorize]
+        [HttpPost]
+        public IActionResult UserReportVolunteer([FromForm] int reqId, [FromForm] string desc)
+        {
+            try
+            {
+                User user = CurrentUser;
+                AcceptedRequest request = ServiceUnit.AcceptedRequest.GetUserBy(x => x.RequestId == reqId);
+
+                Report _report = new Report()
+                {
+                    RequestId = request.RequestId,
+                    UserId = user.Id,
+                    UserReportedId = request.VolunteerId,
+                    Description = desc,
+                    Date = new DateTime(),
+                    Type = 0
+                };
+
+                Report report = ServiceUnit.Report.Add(_report);
+
+                return Ok(new JsonResult(new { Success = true, report }));
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.InnerException.Message.ToString());
+            }
+        }
+
+        [Route("DeliveredRequest")]
+        [Authorize]
+        [HttpPost]
+        public IActionResult DeliveredRequest([FromForm] int RequestId, [FromForm] string Evaluation, [FromForm] double Rate)
+        {
+            try
+            {
+                User user = CurrentUser;
+
+                Request req = ServiceUnit.Request.GetById(RequestId);
+                req.status = 3;
+                ServiceUnit.Request.SaveChanges();
+
+                DeliveredRequest delReqs = new DeliveredRequest()
+                {
+                    RequestId = RequestId,
+                    Date = new DateTime(),
+                    Evaluation = Evaluation
+                };
+                ServiceUnit.DeliveredRequest.Add(delReqs);
+
+                UserRating userRate = new UserRating()
+                {
+                    Date = new DateTime(),
+                    IsVolunteer = req.SenderId == user.Id,
+                    RequestId = req.Id,
+                    UserId = user.Id,
+                    Description = Evaluation,
+                    Value = Rate
+                };
+                ServiceUnit.UserRating.Add(userRate);
+
+                return Ok(new JsonResult(new { Success = true }));
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message.ToString());
+            }
+        }
+        [Route("FailedRequest")]
+        [Authorize]
+        [HttpPost]
+        public IActionResult FailedRequest([FromForm] int RequestId, [FromForm] string Reason)
+        {
+            try
+            {
+                User user = CurrentUser;
+
+                Request req = ServiceUnit.Request.GetById(RequestId);
+                req.status = 2;
+                ServiceUnit.Request.SaveChanges();
+
+                FailedRequest failReqs = new FailedRequest()
+                {
+                    RequestId = RequestId,
+                    Date = new DateTime(),
+                    Reason = Reason
+                };
+                ServiceUnit.FailedRequest.Add(failReqs);
+
+                return Ok(new JsonResult(new { Success = true }));
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message.ToString());
+            }
+        }
+
         [Route("GetServicesType")]
         [HttpGet]
         [Authorize]
@@ -268,6 +497,36 @@ namespace HealthCareServiceApi.Controllers
                 return BadRequest(e.Message.ToString());
             }
         }
+
+        [Route("AcceptRequest")]
+        [HttpPost]
+        [Authorize]
+        public IActionResult AcceptRequest([FromForm] int Id)
+        {
+            try
+            {
+
+                Request req = ServiceUnit.Request.GetById(Id);
+                req.status = 1;
+                ServiceUnit.Request.SaveChanges();
+
+                AcceptedRequest acr = new AcceptedRequest()
+                {
+                    RequestId = Id,
+                    Date = new DateTime(),
+                    VolunteerId = CurrentUser.Id
+                };
+                ServiceUnit.AcceptedRequest.Add(acr);
+
+                return Ok(new JsonResult(new { Success = true }));
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message.ToString());
+            }
+        }
+
+
         [Route("GetRequest")]
         [HttpGet]
         [Authorize]
@@ -276,7 +535,24 @@ namespace HealthCareServiceApi.Controllers
             try
             {
                 Request _request = ServiceUnit.Request.GetById(id);
-                return Ok(new JsonResult(new { request = _request }));
+                _request.seviceType = ServiceUnit.ServiceType.GetById(_request.SeviceTypeId);
+                double rate = GetUserRate(_request.SenderId);
+                return Ok(new JsonResult(new { rate, request = _request }));
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message.ToString());
+            }
+        }
+        [Route("GetService")]
+        [HttpGet]
+        [Authorize]
+        public IActionResult GetService(int id)
+        {
+            try
+            {
+                Service Service = ServiceUnit.Service.GetById(id);
+                return Ok(new JsonResult(new { Service }));
             }
             catch (Exception e)
             {

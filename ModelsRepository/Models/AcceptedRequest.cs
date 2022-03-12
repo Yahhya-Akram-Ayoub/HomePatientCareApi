@@ -5,10 +5,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Text.Json.Serialization;
 
 namespace ModelsRepository.Models
 {
-   public class AcceptedRequest
+    public class AcceptedRequest
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -26,6 +27,7 @@ namespace ModelsRepository.Models
         [DataType(DataType.DateTime)]
         public DateTime Date { get; set; }
 
+        [JsonIgnore]
         public virtual Request request { get; set; }
         public virtual User user { get; set; }
     }

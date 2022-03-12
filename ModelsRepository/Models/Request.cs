@@ -27,7 +27,7 @@ namespace ModelsRepository.Models
         public int SeviceTypeId { get; set; }
         [DataType(DataType.DateTime)]
         public DateTime ExpireTime { get; set; }
-        public bool IsAccepted { get; set; }
+        public int status { get; set; } // 0 pendding ,  1 accepted , 2 rejected , 3 delevired
 
         /* Patient */
         public string PName { get; set; }

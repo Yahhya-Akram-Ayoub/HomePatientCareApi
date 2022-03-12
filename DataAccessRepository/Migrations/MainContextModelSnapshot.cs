@@ -147,9 +147,6 @@ namespace DataAccessRepository.Migrations
                     b.Property<DateTime>("ExpireTime")
                         .HasColumnType("datetime2");
 
-                    b.Property<bool>("IsAccepted")
-                        .HasColumnType("bit");
-
                     b.Property<double>("Lattiud")
                         .HasColumnType("float");
 
@@ -178,6 +175,9 @@ namespace DataAccessRepository.Migrations
                         .HasColumnType("int");
 
                     b.Property<int>("VGender")
+                        .HasColumnType("int");
+
+                    b.Property<int>("status")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -367,6 +367,9 @@ namespace DataAccessRepository.Migrations
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<double>("Value")
+                        .HasColumnType("float");
 
                     b.HasKey("Id");
 

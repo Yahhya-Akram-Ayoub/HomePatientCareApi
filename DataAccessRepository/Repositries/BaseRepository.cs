@@ -25,7 +25,10 @@ namespace DataAccessRepository.Repositries
 
             return entity;
         }
-
+        public void SaveChanges()
+        {
+            _context.SaveChanges();
+        }
         public T CheckUserLogin(Expression<Func<T, bool>> user)
         {
             IQueryable<T> query = _context.Set<T>();
@@ -59,6 +62,13 @@ namespace DataAccessRepository.Repositries
         public T GetUserBy(Expression<Func<T, bool>> exp)
         {
             return _context.Set<T>().FirstOrDefault(exp);
+        }
+
+        public T RemoveObj(T obj)
+        {
+            _context.Set<T>().Remove(obj);
+            _context.SaveChanges();
+            return obj;
         }
     }
 }

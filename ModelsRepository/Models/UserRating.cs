@@ -26,6 +26,8 @@ namespace ModelsRepository.Models
         [ForeignKey("user")]
         public Guid UserId { get; set; }
 
+        [Required]
+        public double Value { get; set; }
         public bool IsVolunteer { get; set; }
 
         public virtual User user { get; set; }
