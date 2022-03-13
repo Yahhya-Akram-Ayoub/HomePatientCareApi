@@ -232,12 +232,6 @@ namespace DataAccessRepository.Migrations
                     b.Property<int>("Gender")
                         .HasColumnType("int");
 
-                    b.Property<double>("Lat")
-                        .HasColumnType("float");
-
-                    b.Property<double>("Lng")
-                        .HasColumnType("float");
-
                     b.Property<int>("TypeId")
                         .HasColumnType("int");
 

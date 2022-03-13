@@ -54,6 +54,32 @@ namespace HealthCareServiceApi.Controllers
             return NotFound("User not found");
         }
 
+
+        [HttpPost]
+        [Route("UpdateLogin")]
+        [Authorize]
+        public IActionResult UpdateLogin()
+        {
+            try
+            {
+                User user = CurrentUser;
+
+                if (user != null)
+                {
+                    string token = _JWTService.GenerateToken(user);
+                    User _user = ServiceUnit.Users.GetUserBy(x => x.Email == user.Email);
+                    return Ok(new JsonResult(new { token, user }));
+                }
+            }
+            catch (Exception e)
+            {
+                return NotFound("User not found");
+            }
+
+            return NotFound("User not found");
+        }
+
+
         [HttpPost]
         [Route("Register")]
         [AllowAnonymous]

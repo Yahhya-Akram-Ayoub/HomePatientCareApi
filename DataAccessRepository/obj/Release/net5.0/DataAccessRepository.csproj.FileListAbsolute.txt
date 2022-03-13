@@ -1,0 +1,15 @@
+E:\Apps\HealthCareServiceApi\DataAccessRepository\bin\Release\net5.0\DataAccessRepository.deps.json
+E:\Apps\HealthCareServiceApi\DataAccessRepository\bin\Release\net5.0\DataAccessRepository.dll
+E:\Apps\HealthCareServiceApi\DataAccessRepository\bin\Release\net5.0\ref\DataAccessRepository.dll
+E:\Apps\HealthCareServiceApi\DataAccessRepository\bin\Release\net5.0\DataAccessRepository.pdb
+E:\Apps\HealthCareServiceApi\DataAccessRepository\bin\Release\net5.0\ModelsRepository.dll
+E:\Apps\HealthCareServiceApi\DataAccessRepository\bin\Release\net5.0\ModelsRepository.pdb
+E:\Apps\HealthCareServiceApi\DataAccessRepository\obj\Release\net5.0\DataAccessRepository.csproj.AssemblyReference.cache
+E:\Apps\HealthCareServiceApi\DataAccessRepository\obj\Release\net5.0\DataAccessRepository.GeneratedMSBuildEditorConfig.editorconfig
+E:\Apps\HealthCareServiceApi\DataAccessRepository\obj\Release\net5.0\DataAccessRepository.AssemblyInfoInputs.cache
+E:\Apps\HealthCareServiceApi\DataAccessRepository\obj\Release\net5.0\DataAccessRepository.AssemblyInfo.cs
+E:\Apps\HealthCareServiceApi\DataAccessRepository\obj\Release\net5.0\DataAccessRepository.csproj.CoreCompileInputs.cache
+E:\Apps\HealthCareServiceApi\DataAccessRepository\obj\Release\net5.0\DataAccessRepository.csproj.CopyComplete
+E:\Apps\HealthCareServiceApi\DataAccessRepository\obj\Release\net5.0\DataAccessRepository.dll
+E:\Apps\HealthCareServiceApi\DataAccessRepository\obj\Release\net5.0\ref\DataAccessRepository.dll
+E:\Apps\HealthCareServiceApi\DataAccessRepository\obj\Release\net5.0\DataAccessRepository.pdb

@@ -44,23 +44,23 @@ namespace HealthCareServiceApi.Controllers
         [Route("SaveService")]
         [HttpPost]
         [Authorize]
-        public IActionResult SaveService([FromForm] string service, List<IFormFile> battlePlans, [FromForm] int Id)
+        public IActionResult SaveService([FromForm] string service, List<IFormFile> battlePlans, [FromForm] string Id)
         {
             try
             {
                 User user = ServiceUnit.Users.GetUserBy(x => x.Id == CurrentUser.Id);
                 Service _service = JsonSerializer.Deserialize<Service>(service);
                 Service Service;
-                if (Id == 0)
+                if (string.IsNullOrEmpty(Id) || Id == "null")
                 {
                     _service.UserId = CurrentUser.Id;
                     Service = ServiceUnit.Service.Add(_service);
                 }
                 else
                 {
-                    Service = ServiceUnit.Service.GetById(Id);
-                    Service.Lat = _service.Lat;
-                    Service.Lat = _service.Lng;
+                    Service = ServiceUnit.Service.GetById(Convert.ToInt32(Id));
+                    // Service.Lat = _service.Lat;
+                    // Service.Lat = _service.Lng;
                     Service.AgeFrom = _service.AgeFrom;
                     Service.AgeTo = _service.AgeTo;
                     Service.TypeId = _service.TypeId;
@@ -118,7 +118,7 @@ namespace HealthCareServiceApi.Controllers
                 ServiceUnit.Service.RemoveObj(ServiceUnit.Service.GetById(Id));
                 User user = ServiceUnit.Users.GetUserBy(x => x.Id == CurrentUser.Id);
                 List<Service> services = ServiceUnit.Service.GetAll(x => x.UserId == user.Id).ToList();
-               
+
                 if (services.Count == 0)
                 {
                     user.Role = "User";
@@ -262,13 +262,17 @@ namespace HealthCareServiceApi.Controllers
             {
                 User user = CurrentUser;
                 List<Request> RequestsInScope = ServiceUnit.Request.GetAll(x => x.status == 0).ToList();
-                List<Service> UserServices = ServiceUnit.Service.GetAll(x => x.UserId == CurrentUser.Id).ToList();
+                List<Service> UserServices = ServiceUnit.Service.GetAll(x => x.UserId == user.Id).ToList();
+                if (UserServices.Count == 0)
+                {
+                    return BadRequest(new JsonResult(new { UserServices, RequestsInScope }));
+                }
                 List<Request> InScopeRequests = RequestsInScope.FindAll(x =>
-          //  UserServices.Exists(e => e.TypeId == x.Id && x.PAge <= e.AgeTo && x.PAge >= e.AgeFrom) &&
-          (1000 >= CalculateDistance(x.Lattiud, x.Longtiud, user.Lat, user.Lng)));
+                UserServices.FirstOrDefault(e => e.TypeId == x.SeviceTypeId && x.PAge <= e.AgeTo && x.PAge >= e.AgeFrom) != null &&
+                (1000 >= CalculateDistance(x.Lattiud, x.Longtiud, user.Lat, user.Lng)));
 
                 List<Request> AroundScopeRequests = RequestsInScope.FindAll(x =>
-                        // UserServices.Exists(e => e.TypeId == x.Id && x.PAge <= e.AgeTo && x.PAge >= e.AgeFrom) &&
+                         UserServices.FirstOrDefault(e => e.TypeId == x.SeviceTypeId && x.PAge <= e.AgeTo && x.PAge >= e.AgeFrom) != null &&
                         (1000 < CalculateDistance(x.Lattiud, x.Longtiud, user.Lat, user.Lng)) &&
                         (3000 >= CalculateDistance(x.Lattiud, x.Longtiud, user.Lat, user.Lng)));
 
@@ -560,15 +564,31 @@ namespace HealthCareServiceApi.Controllers
             }
         }
 
-        private double CalculateDistance(double lat1, double long1, double lat2, double long2)
+        //private double CalculateDistance(double lat1, double long1, double lat2, double long2)
+        //{
+        //    var d1 = lat1 * (Math.PI / 180.0);
+        //    var num1 = long1 * (Math.PI / 180.0);
+        //    var d2 = lat2 * (Math.PI / 180.0);
+        //    var num2 = long2 * (Math.PI / 180.0) - num1;
+        //    var d3 = Math.Pow(Math.Sin((d2 - d1) / 2.0), 2.0) +
+        //             Math.Cos(d1) * Math.Cos(d2) * Math.Pow(Math.Sin(num2 / 2.0), 2.0);
+        //    double result = 6376500.0 * (2.0 * Math.Atan2(Math.Sqrt(d3), Math.Sqrt(1.0 - d3)));
+        //    return result;
+        //}
+        public  double CalculateDistance(double lat1, double lon1, double lat2, double lon2)
         {
-            var d1 = lat1 * (Math.PI / 180.0);
-            var num1 = long1 * (Math.PI / 180.0);
-            var d2 = lat2 * (Math.PI / 180.0);
-            var num2 = long2 * (Math.PI / 180.0) - num1;
-            var d3 = Math.Pow(Math.Sin((d2 - d1) / 2.0), 2.0) +
-                     Math.Cos(d1) * Math.Cos(d2) * Math.Pow(Math.Sin(num2 / 2.0), 2.0);
-            return 6376500.0 * (2.0 * Math.Atan2(Math.Sqrt(d3), Math.Sqrt(1.0 - d3)));
+            double rlat1 = Math.PI * lat1 / 180;
+            double rlat2 = Math.PI * lat2 / 180;
+            double theta = lon1 - lon2;
+            double rtheta = Math.PI * theta / 180;
+            double dist =
+                Math.Sin(rlat1) * Math.Sin(rlat2) + Math.Cos(rlat1) *
+                Math.Cos(rlat2) * Math.Cos(rtheta);
+            dist = Math.Acos(dist);
+            dist = dist * 180 / Math.PI;
+            dist = dist * 60 * 1.1515;
+            dist = dist * 1.609344;
+            return dist;
         }
     }
 }
