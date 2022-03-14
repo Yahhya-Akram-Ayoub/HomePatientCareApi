@@ -55,9 +55,9 @@ namespace HealthCareServiceApi.Controllers
         }
 
 
-        [HttpPost]
+        [HttpGet]
         [Route("UpdateLogin")]
-        [Authorize]
+        [AllowAnonymous]
         public IActionResult UpdateLogin()
         {
             try
