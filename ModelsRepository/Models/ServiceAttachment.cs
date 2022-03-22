@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace ModelsRepository.Models
@@ -17,6 +18,7 @@ namespace ModelsRepository.Models
         public int ServiceId { get; set; }
         public string Attachment { get; set; }
 
+        [JsonIgnore]
         public virtual Service service { get; set; }
     }
 }

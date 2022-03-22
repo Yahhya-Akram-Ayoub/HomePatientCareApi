@@ -261,7 +261,7 @@ namespace HealthCareServiceApi.Controllers
             try
             {
                 User user = CurrentUser;
-                List<Request> RequestsInScope = ServiceUnit.Request.GetAll(x => x.status == 0).ToList();
+                List<Request> RequestsInScope = ServiceUnit.Request.GetAll(x => x.status == 0 && !x.seviceType.Category.Equals("2")).ToList();
                 List<Service> UserServices = ServiceUnit.Service.GetAll(x => x.UserId == user.Id).ToList();
                 if (UserServices.Count == 0)
                 {
@@ -313,7 +313,31 @@ namespace HealthCareServiceApi.Controllers
                 return BadRequest(e.Message.ToString());
             }
         }
+        [Route("GetAttachmentsService")]
+        [Authorize]
+        [HttpGet]
+        public IActionResult GetAttachmentsService()
+        {
+            try
+            {
+                User user = CurrentUser;
+                List<ServiceType> ServicesTypes = ServiceUnit.ServiceType.GetAll(x => x.Category == "2").ToList();
+                List<Service> ServicesInScope = ServiceUnit.Service.GetAll(x => x.Id != -1).ToList().FindAll(x => ServicesTypes.Exists(y => y.Id == x.TypeId));
+                List<ServiceAttachment> ServiceAttachments = ServiceUnit.ServiceAttachment.GetAll(x => x.Id != -1).ToList();
 
+                List<Service> InScopeServices = ServicesInScope; // ServicesInScope.FindAll(x => 1000 >= CalculateDistance(x.user.Lat, x.user.Lng, user.Lat, user.Lng));
+
+                List<Service> AroundScopeServices = ServicesInScope; //  ServicesInScope.FindAll(x =>
+                                                                     // (1000 < CalculateDistance(x.user.Lat, x.user.Lng, user.Lat, user.Lng)) &&
+                                                                     //        (3000 >= CalculateDistance(x.user.Lat, x.user.Lng, user.Lat, user.Lng)));
+
+                return Ok(new JsonResult(new { InScopeServices, AroundScopeServices }));
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message.ToString());
+            }
+        }
 
         [Route("GetProvidedList")]
         [Authorize]
@@ -530,7 +554,10 @@ namespace HealthCareServiceApi.Controllers
             }
         }
 
-
+        //[HttpGet]
+        //[ProducesResponseType(typeof(string), 200)]
+        //[ProducesResponseType(500)]
+        //[Route("{employeeID:int}")]
         [Route("GetRequest")]
         [HttpGet]
         [Authorize]
@@ -563,19 +590,7 @@ namespace HealthCareServiceApi.Controllers
                 return BadRequest(e.Message.ToString());
             }
         }
-
-        //private double CalculateDistance(double lat1, double long1, double lat2, double long2)
-        //{
-        //    var d1 = lat1 * (Math.PI / 180.0);
-        //    var num1 = long1 * (Math.PI / 180.0);
-        //    var d2 = lat2 * (Math.PI / 180.0);
-        //    var num2 = long2 * (Math.PI / 180.0) - num1;
-        //    var d3 = Math.Pow(Math.Sin((d2 - d1) / 2.0), 2.0) +
-        //             Math.Cos(d1) * Math.Cos(d2) * Math.Pow(Math.Sin(num2 / 2.0), 2.0);
-        //    double result = 6376500.0 * (2.0 * Math.Atan2(Math.Sqrt(d3), Math.Sqrt(1.0 - d3)));
-        //    return result;
-        //}
-        public  double CalculateDistance(double lat1, double lon1, double lat2, double lon2)
+        public double CalculateDistance(double lat1, double lon1, double lat2, double lon2)
         {
             double rlat1 = Math.PI * lat1 / 180;
             double rlat2 = Math.PI * lat2 / 180;
