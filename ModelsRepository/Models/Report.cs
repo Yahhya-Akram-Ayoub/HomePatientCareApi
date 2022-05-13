@@ -19,9 +19,10 @@ namespace ModelsRepository.Models
         public string Description { get; set; }
         [Required]
         public DateTime Date { get; set; }
-        [Required]
         [ForeignKey("request")]
-        public int RequestId { get; set; }
+        public int? RequestId { get; set; }
+        [ForeignKey("service")]
+        public int? ServiceId { get; set; }
         [Required]
         [ForeignKey("_user")]
         public Guid UserId { get; set; }
@@ -30,7 +31,8 @@ namespace ModelsRepository.Models
         public Guid UserReportedId { get; set; }
 
         public virtual User _user { get; set; }
-        public virtual  User user_reported { get; set; }
+        public virtual Service service { get; set; }
+        public virtual User user_reported { get; set; }
         public virtual Request request { get; set; }
     }
 }

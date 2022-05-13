@@ -26,10 +26,7 @@ namespace ModelsRepository.Models
         public int AgeFrom { get; set; }
         [Required]
         public int AgeTo { get; set; }
-        //  [Required]
-        //  public double Lat { get; set; }
-        //  [Required]
-        //  public double Lng { get; set; }
+        public bool? IsActive { get; set; }
         public List<ServiceAttachment> Attachments { get; set; }
         public List<Request> Requests { get; set; }
 

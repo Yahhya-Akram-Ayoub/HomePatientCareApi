@@ -10,3 +10,15 @@ E:\Apps\HealthCareServiceApi\ModelsRepository\obj\Debug\net5.0\ModelsRepository.
 E:\Apps\HealthCareServiceApi\ModelsRepository\obj\Debug\net5.0\ModelsRepository.dll
 E:\Apps\HealthCareServiceApi\ModelsRepository\obj\Debug\net5.0\ref\ModelsRepository.dll
 E:\Apps\HealthCareServiceApi\ModelsRepository\obj\Debug\net5.0\ModelsRepository.pdb
+D:\Apps\HealthCareServiceApi\ModelsRepository\bin\Debug\net5.0\ModelsRepository.deps.json
+D:\Apps\HealthCareServiceApi\ModelsRepository\bin\Debug\net5.0\ModelsRepository.dll
+D:\Apps\HealthCareServiceApi\ModelsRepository\bin\Debug\net5.0\ModelsRepository.pdb
+D:\Apps\HealthCareServiceApi\ModelsRepository\obj\Debug\net5.0\ModelsRepository.csproj.AssemblyReference.cache
+D:\Apps\HealthCareServiceApi\ModelsRepository\obj\Debug\net5.0\ModelsRepository.GeneratedMSBuildEditorConfig.editorconfig
+D:\Apps\HealthCareServiceApi\ModelsRepository\obj\Debug\net5.0\ModelsRepository.AssemblyInfoInputs.cache
+D:\Apps\HealthCareServiceApi\ModelsRepository\obj\Debug\net5.0\ModelsRepository.AssemblyInfo.cs
+D:\Apps\HealthCareServiceApi\ModelsRepository\obj\Debug\net5.0\ModelsRepository.csproj.CoreCompileInputs.cache
+D:\Apps\HealthCareServiceApi\ModelsRepository\obj\Debug\net5.0\ModelsRepository.dll
+D:\Apps\HealthCareServiceApi\ModelsRepository\obj\Debug\net5.0\refint\ModelsRepository.dll
+D:\Apps\HealthCareServiceApi\ModelsRepository\obj\Debug\net5.0\ModelsRepository.pdb
+D:\Apps\HealthCareServiceApi\ModelsRepository\obj\Debug\net5.0\ref\ModelsRepository.dll

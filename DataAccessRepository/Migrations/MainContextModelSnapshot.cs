@@ -107,7 +107,10 @@ namespace DataAccessRepository.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("RequestId")
+                    b.Property<int?>("RequestId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ServiceId")
                         .HasColumnType("int");
 
                     b.Property<int>("Type")
@@ -122,6 +125,8 @@ namespace DataAccessRepository.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("RequestId");
+
+                    b.HasIndex("ServiceId");
 
                     b.HasIndex("UserId");
 
@@ -231,6 +236,9 @@ namespace DataAccessRepository.Migrations
 
                     b.Property<int>("Gender")
                         .HasColumnType("int");
+
+                    b.Property<bool?>("IsActive")
+                        .HasColumnType("bit");
 
                     b.Property<int>("TypeId")
                         .HasColumnType("int");
@@ -440,9 +448,11 @@ namespace DataAccessRepository.Migrations
                 {
                     b.HasOne("ModelsRepository.Models.Request", "request")
                         .WithMany("Reports")
-                        .HasForeignKey("RequestId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("RequestId");
+
+                    b.HasOne("ModelsRepository.Models.Service", "service")
+                        .WithMany()
+                        .HasForeignKey("ServiceId");
 
                     b.HasOne("ModelsRepository.Models.User", "_user")
                         .WithMany()
@@ -459,6 +469,8 @@ namespace DataAccessRepository.Migrations
                     b.Navigation("_user");
 
                     b.Navigation("request");
+
+                    b.Navigation("service");
 
                     b.Navigation("user_reported");
                 });

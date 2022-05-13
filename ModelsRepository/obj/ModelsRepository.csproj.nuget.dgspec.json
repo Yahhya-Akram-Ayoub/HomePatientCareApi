@@ -1,24 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "E:\\Apps\\HealthCareServiceApi\\ModelsRepository\\ModelsRepository.csproj": {}
+    "D:\\Apps\\HealthCareServiceApi\\ModelsRepository\\ModelsRepository.csproj": {}
   },
   "projects": {
-    "E:\\Apps\\HealthCareServiceApi\\ModelsRepository\\ModelsRepository.csproj": {
+    "D:\\Apps\\HealthCareServiceApi\\ModelsRepository\\ModelsRepository.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\Apps\\HealthCareServiceApi\\ModelsRepository\\ModelsRepository.csproj",
+        "projectUniqueName": "D:\\Apps\\HealthCareServiceApi\\ModelsRepository\\ModelsRepository.csproj",
         "projectName": "ModelsRepository",
-        "projectPath": "E:\\Apps\\HealthCareServiceApi\\ModelsRepository\\ModelsRepository.csproj",
-        "packagesPath": "C:\\Users\\user\\.nuget\\packages\\",
-        "outputPath": "E:\\Apps\\HealthCareServiceApi\\ModelsRepository\\obj\\",
+        "projectPath": "D:\\Apps\\HealthCareServiceApi\\ModelsRepository\\ModelsRepository.csproj",
+        "packagesPath": "C:\\Users\\96278\\.nuget\\packages\\",
+        "outputPath": "D:\\Apps\\HealthCareServiceApi\\ModelsRepository\\obj\\",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-        ],
         "configFilePaths": [
-          "C:\\Users\\user\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Users\\96278\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -58,7 +54,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.303\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.202\\RuntimeIdentifierGraph.json"
         }
       }
     }

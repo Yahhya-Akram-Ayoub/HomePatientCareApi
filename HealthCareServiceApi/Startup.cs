@@ -77,11 +77,37 @@ namespace HealthCareServiceApi
             services.AddTransient<IServiceUnit, ServiceUnit>();
             //services.AddSingleton<IServiceUnit, ServiceUnit>();
 
-            services.AddSwaggerGen(c =>
+            services.AddSwaggerGen(option =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "HealthCareServiceApi", Version = "v1" });
-                c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First()); //This line
+                option.SwaggerDoc("v1", new OpenApiInfo { Title = "HealthCareServiceApi", Version = "v1" });
+                option.ResolveConflictingActions(apiDescriptions => apiDescriptions.First()); //This line
+                option.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+
+                {
+                    In = ParameterLocation.Header,
+                    Description = "Please enter a valid token",
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.Http,
+                    BearerFormat = "JWT",
+                    Scheme = "Bearer"
+                });
+
+                option.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type=ReferenceType.SecurityScheme,
+                    Id="Bearer"
+                }
+            },
+            new string[]{}
+        }
+    });
             });
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -89,11 +115,10 @@ namespace HealthCareServiceApi
         {
             if (env.IsDevelopment())
             {
-                app.UseDeveloperExceptionPage();
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "HealthCareServiceApi v1"));
             }
-          
+
             app.UseHttpsRedirection();
             app.UseStaticFiles(new StaticFileOptions
             {

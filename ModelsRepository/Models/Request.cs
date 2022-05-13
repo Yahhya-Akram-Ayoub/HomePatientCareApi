@@ -43,10 +43,9 @@ namespace ModelsRepository.Models
         public DeliveredRequest DeliveredInfo { get; set; }
 
         public List<Report> Reports { get; set; }
-        public List<UserRating> Rates { get; set; }
 
-        public virtual  User user { get; set; }
-        public virtual  ServiceType seviceType { get; set; }
+        public virtual User user { get; set; }
+        public virtual ServiceType seviceType { get; set; }
 
     }
 }

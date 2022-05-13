@@ -54,13 +54,12 @@ namespace HealthCareServiceApi.Controllers
                 if (string.IsNullOrEmpty(Id) || Id == "null")
                 {
                     _service.UserId = CurrentUser.Id;
+                    _service.IsActive = true;
                     Service = ServiceUnit.Service.Add(_service);
                 }
                 else
                 {
                     Service = ServiceUnit.Service.GetById(Convert.ToInt32(Id));
-                    // Service.Lat = _service.Lat;
-                    // Service.Lat = _service.Lng;
                     Service.AgeFrom = _service.AgeFrom;
                     Service.AgeTo = _service.AgeTo;
                     Service.TypeId = _service.TypeId;
@@ -133,6 +132,7 @@ namespace HealthCareServiceApi.Controllers
             }
         }
 
+        [NonAction]
         public double GetUserRate(Guid id)
         {
             List<UserRating> rates = ServiceUnit.UserRating.GetAll(x => x.request.SenderId == id /*&& !x.IsVolunteer*/).ToList();
@@ -268,7 +268,7 @@ namespace HealthCareServiceApi.Controllers
                     return BadRequest(new JsonResult(new { UserServices, RequestsInScope }));
                 }
                 List<Request> InScopeRequests = RequestsInScope.FindAll(x =>
-                UserServices.FirstOrDefault(e => e.TypeId == x.SeviceTypeId && x.PAge <= e.AgeTo && x.PAge >= e.AgeFrom) != null &&
+                UserServices.FirstOrDefault(e => e.TypeId == x.SeviceTypeId && ((x.PAge <= e.AgeTo && x.PAge >= e.AgeFrom) || e.AgeFrom == -1)) != null &&
                 (1000 >= CalculateDistance(x.Lattiud, x.Longtiud, user.Lat, user.Lng)));
 
                 List<Request> AroundScopeRequests = RequestsInScope.FindAll(x =>
@@ -322,7 +322,8 @@ namespace HealthCareServiceApi.Controllers
             {
                 User user = CurrentUser;
                 List<ServiceType> ServicesTypes = ServiceUnit.ServiceType.GetAll(x => x.Category == "2").ToList();
-                List<Service> ServicesInScope = ServiceUnit.Service.GetAll(x => x.Id != -1).ToList().FindAll(x => ServicesTypes.Exists(y => y.Id == x.TypeId));
+                List<Service> ServicesInScope = ServiceUnit.Service.GetAll(x => x.Id != -1 && x.IsActive == true).ToList().FindAll(x => ServicesTypes.Exists(y => y.Id == x.TypeId));
+
                 List<ServiceAttachment> ServiceAttachments = ServiceUnit.ServiceAttachment.GetAll(x => x.Id != -1).ToList();
 
                 List<Service> InScopeServices = ServicesInScope; // ServicesInScope.FindAll(x => 1000 >= CalculateDistance(x.user.Lat, x.user.Lng, user.Lat, user.Lng));
@@ -368,6 +369,7 @@ namespace HealthCareServiceApi.Controllers
                 User user = CurrentUser;
                 List<AcceptedRequest> AcceptedRequests =
                     ServiceUnit.AcceptedRequest.GetAll(x => x.VolunteerId == CurrentUser.Id).ToList();
+                ServiceUnit.Users.GetAll(x => x.Id != null);
                 List<Request> requests = new List<Request>();
                 foreach (AcceptedRequest acr in AcceptedRequests)
                 {
@@ -375,8 +377,8 @@ namespace HealthCareServiceApi.Controllers
                     request.seviceType = ServiceUnit.ServiceType.GetById(request.SeviceTypeId);
                     requests.Add(request);
                 }
-
-                return Ok(new JsonResult(new { Success = true, AcceptedRequests, requests }));
+                List<UserRating> rating = ServiceUnit.UserRating.GetAll(x => x.IsVolunteer == true).ToList();
+                return Ok(new JsonResult(new { Success = true, AcceptedRequests, requests, rating }));
             }
             catch (Exception e)
             {
@@ -393,17 +395,24 @@ namespace HealthCareServiceApi.Controllers
             {
                 User user = CurrentUser;
                 List<Request> requests = ServiceUnit.Request.GetAll(x => x.SenderId == CurrentUser.Id).ToList(); ;
-
                 List<AcceptedRequest> AcceptedRequests = new List<AcceptedRequest>();
 
                 foreach (Request acr in requests)
                 {
                     AcceptedRequest acceptedRequest = ServiceUnit.AcceptedRequest.GetUserBy(x => x.RequestId == acr.Id);
                     acr.seviceType = ServiceUnit.ServiceType.GetById(acr.SeviceTypeId);
+
+                    if (acceptedRequest != null)
+                        acr.user = ServiceUnit.Users.GetUserBy(x => x.Id == acceptedRequest.VolunteerId);
+                    else
+                        acr.user = null;
+
                     AcceptedRequests.Add(acceptedRequest);
                 }
 
-                return Ok(new JsonResult(new { Success = true, AcceptedRequests, requests }));
+                List<UserRating> rating = ServiceUnit.UserRating.GetAll(x => x.IsVolunteer == false).ToList();
+
+                return Ok(new JsonResult(new { Success = true, AcceptedRequests, requests, rating }));
             }
             catch (Exception e)
             {
@@ -412,7 +421,6 @@ namespace HealthCareServiceApi.Controllers
         }
 
         [Route("UserReportVolunteer")]
-        [Authorize]
         [HttpPost]
         public IActionResult UserReportVolunteer([FromForm] int reqId, [FromForm] string desc)
         {
@@ -420,6 +428,10 @@ namespace HealthCareServiceApi.Controllers
             {
                 User user = CurrentUser;
                 AcceptedRequest request = ServiceUnit.AcceptedRequest.GetUserBy(x => x.RequestId == reqId);
+
+                Request _req = ServiceUnit.Request.GetUserBy(x => x.Id == request.RequestId);
+                _req.status = 2;
+                ServiceUnit.Request.SaveChanges();
 
                 Report _report = new Report()
                 {
@@ -441,6 +453,83 @@ namespace HealthCareServiceApi.Controllers
             }
         }
 
+        [Route("UserReportAttatch")]
+        [Authorize]
+        [HttpPost]
+        public IActionResult UserReportAttatch([FromForm] int reqId, [FromForm] string desc)
+        {
+            try
+            {
+                User user = CurrentUser;
+                Service service = ServiceUnit.Service.GetUserBy(x => x.Id == reqId);
+
+                Report _report = new Report()
+                {
+                    ServiceId = service.Id,
+                    UserId = user.Id,
+                    RequestId = null,
+                    UserReportedId = service.UserId,
+                    Description = desc,
+                    Date = new DateTime(),
+                    Type = 2 // servbice
+                };
+
+                Report report = ServiceUnit.Report.Add(_report);
+
+                return Ok(new JsonResult(new { Success = true, report }));
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.InnerException.Message.ToString());
+            }
+        }
+        [Route("UserAcceptAttatch")]
+        [Authorize]
+        [HttpPost]
+        public IActionResult UserAcceptAttatch([FromForm] int reqId)
+        {
+            try
+            {
+                User user = CurrentUser;
+                Service service = ServiceUnit.Service.GetUserBy(x => x.Id == reqId);
+                ServiceType type = ServiceUnit.ServiceType.GetUserBy(x => x.Id == service.TypeId);
+                Request _request = new Request()
+                {
+                    Date = new DateTime(),
+                    SenderId = CurrentUser.Id,
+                    Description = type.Desciption,
+                    Lattiud = CurrentUser.Lat,
+                    Longtiud = CurrentUser.Lng,
+                    ExpireTime = new DateTime(),
+                    SeviceTypeId = type.Id,
+                    PGender = CurrentUser.Gender,
+                    PDescription = null,
+                    PAge = (DateTime.Today.Year - CurrentUser.BirthDate.Year),
+                    PName = CurrentUser.Name,
+                    VGender = CurrentUser.Gender,
+                };
+
+                _request = ServiceUnit.Request.Add(_request);
+
+                AcceptedRequest acc = new AcceptedRequest()
+                {
+                    RequestId = _request.Id,
+                    VolunteerId = service.UserId,
+                    Date = new DateTime(),
+                };
+
+                ServiceUnit.AcceptedRequest.Add(acc);
+                service.IsActive = false;
+                ServiceUnit.Service.SaveChanges();
+
+                return Ok(new JsonResult(new { Success = true }));
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.InnerException.Message.ToString());
+            }
+        }
+
         [Route("DeliveredRequest")]
         [Authorize]
         [HttpPost]
@@ -454,18 +543,22 @@ namespace HealthCareServiceApi.Controllers
                 req.status = 3;
                 ServiceUnit.Request.SaveChanges();
 
-                DeliveredRequest delReqs = new DeliveredRequest()
+                DeliveredRequest dReq = ServiceUnit.DeliveredRequest.GetAll(x => x.RequestId == RequestId).FirstOrDefault();
+                if (dReq == null)
                 {
-                    RequestId = RequestId,
-                    Date = new DateTime(),
-                    Evaluation = Evaluation
-                };
-                ServiceUnit.DeliveredRequest.Add(delReqs);
+                    DeliveredRequest delReqs = new DeliveredRequest()
+                    {
+                        RequestId = RequestId,
+                        Date = new DateTime(),
+                        Evaluation = Evaluation
+                    };
+                    ServiceUnit.DeliveredRequest.Add(delReqs);
+                }
 
                 UserRating userRate = new UserRating()
                 {
                     Date = new DateTime(),
-                    IsVolunteer = req.SenderId == user.Id,
+                    IsVolunteer = req.SenderId != user.Id,
                     RequestId = req.Id,
                     UserId = user.Id,
                     Description = Evaluation,
@@ -590,6 +683,8 @@ namespace HealthCareServiceApi.Controllers
                 return BadRequest(e.Message.ToString());
             }
         }
+
+        [NonAction]
         public double CalculateDistance(double lat1, double lon1, double lat2, double lon2)
         {
             double rlat1 = Math.PI * lat1 / 180;
