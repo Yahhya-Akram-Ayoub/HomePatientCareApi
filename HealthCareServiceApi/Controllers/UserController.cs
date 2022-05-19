@@ -1,37 +1,97 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using HealthCareServiceApi.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using ModelsRepository;
+using ModelsRepository.Models;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text.Json;
 
 namespace HealthCareServiceApi.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/User")]
     [ApiController]
     public class UserController : CustomControllerBase
     {
-        public UserController(IServiceUnit serviceunit) : base(serviceunit)
+        private readonly IConfiguration _config;
+        private readonly JWTServices _JWTService;
+        public UserController(IConfiguration config, IServiceUnit serviceunit) : base(serviceunit)
         {
+            _config = config;
+            _JWTService = new JWTServices(config, ServiceUnit);
         }
 
-        [HttpGet("Admins")]
+        [Route("Update")]
+        [HttpPost]
         [Authorize]
-        public IActionResult AdminsEndpoint()
+        public IActionResult Update([FromForm] string User)
         {
-            return Ok($"Hi {CurrentUser?.Name}, you are an {CurrentUser?.Role}");
+            try
+            {
+                User _user = JsonSerializer.Deserialize<User>(User);
+
+                User user = ServiceUnit.Users.GetUserBy(x => x.Id == CurrentUser.Id);
+
+                user.Name = _user.Name;
+                user.Email = _user.Email;
+                user.Phone = _user.Phone;
+                user.Lat = _user.Lat;
+                user.Lng = _user.Lng;
+
+                ServiceUnit.Users.SaveChanges();
+                string token = _JWTService.GenerateToken(user);
+                return Ok(new JsonResult(new { token, user }));
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message.ToString());
+            }
         }
 
-
-        [HttpGet("Sellers")]
-        [Authorize(Roles = "Seller")]
-        public IActionResult SellersEndpoint()
+        [Route("SaveImage")]
+        [HttpPost]
+        [Authorize]
+        public IActionResult SaveImage(List<IFormFile> battlePlans)
         {
-            return Ok($"Hi {CurrentUser.Name}, you are a {CurrentUser.Role}");
-        }
+            try
+            {
+                if (battlePlans != null && battlePlans.Count > 0)
+                {
+                    var path = _config["Directories:ServiceUserImage"];
+                    if (!Directory.Exists(path))
+                    {
+                        Directory.CreateDirectory(path);
+                    }
 
-        [HttpGet("Public")]
-        public IActionResult Public()
-        {
-            return Ok("Hi, you're on public property");
+
+                    foreach (IFormFile file in battlePlans)
+                    {
+                        if (file.Length > 0)
+                        {
+                            var fileName = CurrentUser.Id.ToString(); // Path.GetFileName(file.FileName);
+                            var myUniqueFileName = Convert.ToString(Guid.NewGuid());
+                            var fileExtension = Path.GetExtension(fileName);
+                            var newFileName = String.Concat(fileName, ".jpg");
+
+                            using (FileStream fs = System.IO.File.Create(String.Concat(path, newFileName)))
+                            {
+                                file.CopyTo(fs);
+                                fs.Flush();
+                            }
+
+                        }
+                    }
+                }
+
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message.ToString());
+            }
         }
-       
     }
 }
