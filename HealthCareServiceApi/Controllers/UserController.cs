@@ -72,8 +72,8 @@ namespace HealthCareServiceApi.Controllers
                         if (file.Length > 0)
                         {
                             var fileName = CurrentUser.Id.ToString(); // Path.GetFileName(file.FileName);
-                            var myUniqueFileName = Convert.ToString(Guid.NewGuid());
-                            var fileExtension = Path.GetExtension(fileName);
+                            //var myUniqueFileName = Convert.ToString(Guid.NewGuid());
+                            //var fileExtension = Path.GetExtension(fileName);
                             var newFileName = String.Concat(fileName, ".jpg");
 
                             using (FileStream fs = System.IO.File.Create(String.Concat(path, newFileName)))

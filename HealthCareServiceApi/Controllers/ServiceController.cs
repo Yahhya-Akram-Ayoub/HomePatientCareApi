@@ -156,7 +156,7 @@ namespace HealthCareServiceApi.Controllers
                 Request _r = JsonSerializer.Deserialize<Request>(request);
                 Request _request = new Request()
                 {
-                    Date = new DateTime(),
+                    Date = DateTime.Now,
                     SenderId = CurrentUser.Id,
                     Description = _r.Description,
                     Lattiud = !CurrentLocation ? _r.Lattiud : CurrentUser.Lat,
@@ -168,6 +168,7 @@ namespace HealthCareServiceApi.Controllers
                     PAge = !CurrentInfo ? _r.PAge : (DateTime.Today.Year - CurrentUser.BirthDate.Year),
                     PName = !CurrentInfo ? _r.PName : CurrentUser.Name,
                     VGender = _r.VGender,
+                    status = 0
                 };
                 Request Request = ServiceUnit.Request.Add(_request);
                 return Ok(Request);
@@ -215,6 +216,7 @@ namespace HealthCareServiceApi.Controllers
             try
             {
                 FailedRequest FailedRequest = ServiceUnit.FailedRequest.Add(_failedRequest);
+
                 return Ok(FailedRequest);
             }
             catch (Exception e)
@@ -322,7 +324,7 @@ namespace HealthCareServiceApi.Controllers
             {
                 User user = CurrentUser;
                 List<ServiceType> ServicesTypes = ServiceUnit.ServiceType.GetAll(x => x.Category == "2").ToList();
-                List<Service> ServicesInScope = ServiceUnit.Service.GetAll(x => x.Id != -1 && x.IsActive == true).ToList().FindAll(x => ServicesTypes.Exists(y => y.Id == x.TypeId));
+                List<Service> ServicesInScope = ServiceUnit.Service.GetAll(x => x.UserId != CurrentUser.Id && x.IsActive == true).ToList().FindAll(x => ServicesTypes.Exists(y => y.Id == x.TypeId));
 
                 List<ServiceAttachment> ServiceAttachments = ServiceUnit.ServiceAttachment.GetAll(x => x.Id != -1).ToList();
 
@@ -401,7 +403,7 @@ namespace HealthCareServiceApi.Controllers
                 {
                     AcceptedRequest acceptedRequest = ServiceUnit.AcceptedRequest.GetUserBy(x => x.RequestId == acr.Id);
                     acr.seviceType = ServiceUnit.ServiceType.GetById(acr.SeviceTypeId);
-
+                    acr.Reports = ServiceUnit.Report.Count(x => x.RequestId == acr.Id) > 0 ? new List<Report>() { new Report() { Id = 0, RequestId = acr.Id } } : null;
                     if (acceptedRequest != null)
                         acr.user = ServiceUnit.Users.GetUserBy(x => x.Id == acceptedRequest.VolunteerId);
                     else
@@ -507,6 +509,8 @@ namespace HealthCareServiceApi.Controllers
                     PAge = (DateTime.Today.Year - CurrentUser.BirthDate.Year),
                     PName = CurrentUser.Name,
                     VGender = CurrentUser.Gender,
+                    ServiceId = service.Id,
+                    status = 1,
                 };
 
                 _request = ServiceUnit.Request.Add(_request);
@@ -593,6 +597,16 @@ namespace HealthCareServiceApi.Controllers
                     Reason = Reason
                 };
                 ServiceUnit.FailedRequest.Add(failReqs);
+
+
+
+                try
+                {
+                    Service service = ServiceUnit.Service.GetById(req.ServiceId);
+                    service.IsActive = true;
+                    ServiceUnit.Service.SaveChanges();
+                }
+                catch (Exception e) { }
 
                 return Ok(new JsonResult(new { Success = true }));
             }

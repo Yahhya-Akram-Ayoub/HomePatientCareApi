@@ -32,6 +32,7 @@ namespace ModelsRepository.Models
         /* Patient */
         public string PName { get; set; }
         public int PAge { get; set; }
+        public int ServiceId { get; set; }
         public string PDescription { get; set; }
         public int PGender { get; set; }
         /* End ,Patient */
