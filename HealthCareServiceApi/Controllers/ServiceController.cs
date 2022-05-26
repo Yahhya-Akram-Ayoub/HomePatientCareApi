@@ -333,11 +333,11 @@ namespace HealthCareServiceApi.Controllers
                 List<Service> AroundScopeServices = ServicesInScope; //  ServicesInScope.FindAll(x =>
                                                                      // (1000 < CalculateDistance(x.user.Lat, x.user.Lng, user.Lat, user.Lng)) &&
                                                                      //        (3000 >= CalculateDistance(x.user.Lat, x.user.Lng, user.Lat, user.Lng)));
-                
+
                 List<User> users = ServiceUnit.Users.GetAll(x => x.Id != null).ToList();
                 List<Request> requests = ServiceUnit.Request.GetAll(x => x.SenderId == user.Id).ToList();
                 requests = requests.Where(x => ServicesInScope.FirstOrDefault(z => x.ServiceId == z.Id) != null).ToList();
-                return Ok(new JsonResult(new { InScopeServices, AroundScopeServices , requests }));
+                return Ok(new JsonResult(new { InScopeServices, AroundScopeServices, requests }));
             }
             catch (Exception e)
             {
@@ -357,6 +357,98 @@ namespace HealthCareServiceApi.Controllers
                 List<ServiceType> ServiceTypes = ServiceUnit.ServiceType.GetAll(x => x.Id != -1).ToList();
 
                 return Ok(new JsonResult(new { Services, ServiceTypes }));
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message.ToString());
+            }
+        }
+
+        [Route("SaveType")]
+        [Authorize]
+        [HttpPost]
+        public IActionResult SaveType([FromForm] string title, [FromForm] string category, [FromForm] int? id)
+        {
+            try
+            {
+                if (id == null || id == 0)
+                {
+                    ServiceType type = new ServiceType() { Title = title, Category = category, Desciption = "Desciption", IsNeedVerfication = category.Equals("1") };
+                    ServiceUnit.ServiceType.Add(type);
+                }
+                else
+                {
+                    ServiceType type = ServiceUnit.ServiceType.GetUserBy(x => x.Id == id);
+                    type.Title = title;
+                    type.Category = category;
+                    ServiceUnit.ServiceType.SaveChanges();
+                }
+
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message.ToString());
+            }
+        }
+
+        [Route("GetServicesTypes")]
+        [HttpGet]
+        public IActionResult GetServicesTypes()
+        {
+            try
+            {
+                List<ServiceType> types = ServiceUnit.ServiceType.GetAll(x => true).ToList();
+                return Ok(types);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message.ToString());
+            }
+        }
+
+        [Route("GetReports")]
+        [Authorize]
+        [HttpGet]
+        public IActionResult GetReports()
+        {
+            try
+            {
+                List<Report> reports = ServiceUnit.Report.GetAll(x => true).ToList();
+                ServiceUnit.Users.GetAll(x => x.Id != null).ToList();
+                return Ok(reports);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message.ToString());
+            }
+        }
+
+        [Route("GetServiceType")]
+        [HttpGet]
+        public IActionResult GetServiceType([FromQuery] int id)
+        {
+            try
+            {
+                ServiceType type = ServiceUnit.ServiceType.GetUserBy(x => true);
+                return Ok(type);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message.ToString());
+            }
+        }
+
+        [Route("RemoveServiceType")]
+        [Authorize]
+        [HttpPost]
+        public IActionResult RemoveServiceType([FromForm] int id)
+        {
+            try
+            {
+                ServiceType type = ServiceUnit.ServiceType.GetUserBy(x => x.Id == id);
+                ServiceUnit.ServiceType.RemoveObj(type);
+                return Ok();
             }
             catch (Exception e)
             {
