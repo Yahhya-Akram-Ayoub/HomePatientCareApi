@@ -333,8 +333,11 @@ namespace HealthCareServiceApi.Controllers
                 List<Service> AroundScopeServices = ServicesInScope; //  ServicesInScope.FindAll(x =>
                                                                      // (1000 < CalculateDistance(x.user.Lat, x.user.Lng, user.Lat, user.Lng)) &&
                                                                      //        (3000 >= CalculateDistance(x.user.Lat, x.user.Lng, user.Lat, user.Lng)));
-
-                return Ok(new JsonResult(new { InScopeServices, AroundScopeServices }));
+                
+                List<User> users = ServiceUnit.Users.GetAll(x => x.Id != null).ToList();
+                List<Request> requests = ServiceUnit.Request.GetAll(x => x.SenderId == user.Id).ToList();
+                requests = requests.Where(x => ServicesInScope.FirstOrDefault(z => x.ServiceId == z.Id) != null).ToList();
+                return Ok(new JsonResult(new { InScopeServices, AroundScopeServices , requests }));
             }
             catch (Exception e)
             {
@@ -523,8 +526,6 @@ namespace HealthCareServiceApi.Controllers
                 };
 
                 ServiceUnit.AcceptedRequest.Add(acc);
-                service.IsActive = false;
-                ServiceUnit.Service.SaveChanges();
 
                 return Ok(new JsonResult(new { Success = true }));
             }
