@@ -51,6 +51,22 @@ namespace HealthCareServiceApi.Controllers
             }
         }
 
+        [Route("GetMember")]
+        [HttpPost]
+        [Authorize]
+        public IActionResult GetMember([FromQuery] string id)
+        {
+            try
+            {
+                User user = ServiceUnit.Users.GetUserBy(x => x.Id == new Guid(id));
+                return Ok(user);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message.ToString());
+            }
+        }
+
         [Route("SaveImage")]
         [HttpPost]
         [Authorize]
