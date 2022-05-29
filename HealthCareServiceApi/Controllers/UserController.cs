@@ -52,7 +52,7 @@ namespace HealthCareServiceApi.Controllers
         }
 
         [Route("GetMember")]
-        [HttpPost]
+        [HttpGet]
         [Authorize]
         public IActionResult GetMember([FromQuery] string id)
         {

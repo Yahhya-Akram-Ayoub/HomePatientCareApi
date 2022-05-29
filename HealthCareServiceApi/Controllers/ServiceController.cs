@@ -50,11 +50,12 @@ namespace HealthCareServiceApi.Controllers
             {
                 User user = ServiceUnit.Users.GetUserBy(x => x.Id == CurrentUser.Id);
                 Service _service = JsonSerializer.Deserialize<Service>(service);
+                ServiceType type = ServiceUnit.ServiceType.GetUserBy(x => x.Id == _service.TypeId);
                 Service Service;
                 if (string.IsNullOrEmpty(Id) || Id == "null")
                 {
                     _service.UserId = CurrentUser.Id;
-                    _service.IsActive = true;
+                    _service.IsActive = !type.Category.Equals("3");
                     Service = ServiceUnit.Service.Add(_service);
                 }
                 else
@@ -67,8 +68,11 @@ namespace HealthCareServiceApi.Controllers
                     ServiceUnit.Service.SaveChanges();
                 }
 
-                user.Role = "Volunteer";
-                ServiceUnit.Users.SaveChanges();
+                if (user.Role != "Admin")
+                {
+                    user.Role = "Volunteer";
+                    ServiceUnit.Users.SaveChanges();
+                }
 
                 if (battlePlans != null && battlePlans.Count > 0)
                 {
@@ -107,6 +111,68 @@ namespace HealthCareServiceApi.Controllers
             }
         }
 
+        [Route("GetUnApprovalService")]
+        [HttpGet]
+        [Authorize]
+        public IActionResult GetUnApprovalService()
+        {
+            try
+            {
+                List<Service> services = ServiceUnit.Service.GetAll(x => x.IsActive == false).ToList();
+                List<ServiceAttachment> serviceAttachment = ServiceUnit.ServiceAttachment.GetAll(x => x.Id != null).ToList();
+                List<ServiceType> types = ServiceUnit.ServiceType.GetAll(x => x.Id != null).ToList();
+                return Ok(services);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message.ToString());
+            }
+        }
+
+        [Route("ApproveService")]
+        [HttpPost]
+        [Authorize]
+        public IActionResult ApproveService([FromForm] int id)
+        {
+            try
+            {
+                Service service = ServiceUnit.Service.GetById(id);
+                service.IsActive = true;
+                ServiceUnit.Service.SaveChanges();  
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message.ToString());
+            }
+        }
+
+        [Route("DeleteService")]
+        [HttpPost]
+        [Authorize]
+        public IActionResult DeleteService([FromForm] int id)
+        {
+            try
+            {
+                Service service = ServiceUnit.Service.GetById(id);
+                List<Service> services = ServiceUnit.Service.GetAll(x => x.UserId == service.UserId).ToList();
+                User user = ServiceUnit.Users.GetUserBy(x => x.Id == service.UserId);
+
+                if(services.Count == 1 && !user.Role.Equals("Admin"))
+                {
+                    user.Role = "User";
+                    ServiceUnit.Users.SaveChanges();
+                }
+
+                ServiceUnit.Service.RemoveObj(service);
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message.ToString());
+            }
+        }
+
         [Route("RemoveService")]
         [HttpPost]
         [Authorize]
@@ -118,7 +184,7 @@ namespace HealthCareServiceApi.Controllers
                 User user = ServiceUnit.Users.GetUserBy(x => x.Id == CurrentUser.Id);
                 List<Service> services = ServiceUnit.Service.GetAll(x => x.UserId == user.Id).ToList();
 
-                if (services.Count == 0)
+                if (services.Count == 0 && !user.Role.Equals("Admin"))
                 {
                     user.Role = "User";
                     ServiceUnit.Users.SaveChanges();
@@ -264,7 +330,7 @@ namespace HealthCareServiceApi.Controllers
             {
                 User user = CurrentUser;
                 List<Request> RequestsInScope = ServiceUnit.Request.GetAll(x => x.status == 0 && !x.seviceType.Category.Equals("2")).ToList();
-                List<Service> UserServices = ServiceUnit.Service.GetAll(x => x.UserId == user.Id).ToList();
+                List<Service> UserServices = ServiceUnit.Service.GetAll(x => x.UserId == user.Id && x.IsActive == true).ToList();
                 if (UserServices.Count == 0)
                 {
                     return BadRequest(new JsonResult(new { UserServices, RequestsInScope }));
