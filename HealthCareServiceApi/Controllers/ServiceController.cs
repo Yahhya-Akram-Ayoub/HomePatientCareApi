@@ -121,6 +121,8 @@ namespace HealthCareServiceApi.Controllers
                 List<Service> services = ServiceUnit.Service.GetAll(x => x.IsActive == false).ToList();
                 List<ServiceAttachment> serviceAttachment = ServiceUnit.ServiceAttachment.GetAll(x => x.Id != null).ToList();
                 List<ServiceType> types = ServiceUnit.ServiceType.GetAll(x => x.Id != null).ToList();
+                List<User> users = ServiceUnit.Users.GetAll(x => x.Id != null).ToList();
+
                 return Ok(services);
             }
             catch (Exception e)
@@ -373,7 +375,6 @@ namespace HealthCareServiceApi.Controllers
                         });
                     }
                 }
-
                 return Ok(new JsonResult(new { InScopeRequests, AroundScopeRequests }));
             }
             catch (Exception e)

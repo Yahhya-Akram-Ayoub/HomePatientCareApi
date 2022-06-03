@@ -67,6 +67,23 @@ namespace HealthCareServiceApi.Controllers
             }
         }
 
+        [Route("BlockUser")]
+        [HttpGet]
+        [Authorize]
+        public IActionResult BlockUser([FromQuery] string id)
+        {
+            try
+            {
+                // blogg
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message.ToString());
+            }
+        }
+
+
         [Route("SaveImage")]
         [HttpPost]
         [Authorize]
