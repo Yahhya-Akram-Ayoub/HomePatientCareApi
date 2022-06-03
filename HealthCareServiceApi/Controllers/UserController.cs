@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using System.Linq;
 
 namespace HealthCareServiceApi.Controllers
 {
@@ -68,13 +69,23 @@ namespace HealthCareServiceApi.Controllers
         }
 
         [Route("BlockUser")]
-        [HttpGet]
+        [HttpPost]
         [Authorize]
-        public IActionResult BlockUser([FromQuery] string id)
+        public IActionResult BlockUser([FromForm] string id)
         {
             try
             {
-                // blogg
+                User user = ServiceUnit.Users.GetUserBy(x => x.Id == new Guid(id));
+
+                if (user.Role == "Block")
+                {
+                    user.Role = "User";
+                }
+                else
+                {
+                    user.Role = "Block";
+                }
+                ServiceUnit.Users.SaveChanges();
                 return Ok();
             }
             catch (Exception e)
@@ -83,8 +94,23 @@ namespace HealthCareServiceApi.Controllers
             }
         }
 
+        [Route("GetBlocedkUsers")]
+        [HttpGet]
+        [Authorize]
+        public IActionResult GetBlocedkUsers()
+        {
+            try {
 
-        [Route("SaveImage")]
+                List<User> users = ServiceUnit.Users.GetAll(x => x.Role == "Block").ToList();
+                return Ok(users);
+            }
+            catch (Exception e) {
+                return BadRequest(e.Message.ToString());
+            }
+          
+        }
+
+       [Route("SaveImage")]
         [HttpPost]
         [Authorize]
         public IActionResult SaveImage(List<IFormFile> battlePlans)
