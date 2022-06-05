@@ -268,7 +268,11 @@ namespace HealthCareServiceApi.Controllers
         {
             try
             {
-                AcceptedRequest AcceptedRequest = ServiceUnit.AcceptedRequest.Add(_acceptedRequest);
+                Request _req = ServiceUnit.Request.GetUserBy(x => x.Id == _acceptedRequest.RequestId);
+                Service _service = ServiceUnit.Service.GetUserBy(x => x.UserId == _acceptedRequest.VolunteerId && _req.SeviceTypeId == x.TypeId);
+                _req.ServiceId = _service.Id;
+                ServiceUnit.Request.SaveChanges();
+               AcceptedRequest AcceptedRequest = ServiceUnit.AcceptedRequest.Add(_acceptedRequest);
                 return Ok(AcceptedRequest);
             }
             catch (Exception e)
@@ -728,6 +732,20 @@ namespace HealthCareServiceApi.Controllers
                     Value = Rate
                 };
                 ServiceUnit.UserRating.Add(userRate);
+
+                if (Rate <= 2.5)
+                {
+                    Service _service = ServiceUnit.Service.GetUserBy(x => x.Id == req.ServiceId);
+                    Report _report = new Report()
+                    {
+                        RequestId = req.Id,
+                        UserId = user.Id,
+                        UserReportedId = _service.UserId,
+                        Description = Evaluation,
+                        Type = _service.UserId == user.Id ? 2 : 1
+                    };
+                    ServiceUnit.Report.Add(_report);
+                }
 
                 return Ok(new JsonResult(new { Success = true }));
             }
