@@ -338,11 +338,11 @@ namespace HealthCareServiceApi.Controllers
                     return BadRequest(new JsonResult(new { UserServices, RequestsInScope }));
                 }
                 List<Request> InScopeRequests = RequestsInScope.FindAll(x =>
-                UserServices.FirstOrDefault(e => e.TypeId == x.SeviceTypeId && ((x.PAge <= e.AgeTo && x.PAge >= e.AgeFrom) || e.AgeFrom == -1)) != null &&
+                UserServices.FirstOrDefault(e => e.TypeId == x.SeviceTypeId && x.SenderId != e.UserId && ((x.PAge <= e.AgeTo && x.PAge >= e.AgeFrom) || e.AgeFrom == -1)) != null &&
                 (1 >= CalculateDistance(x.Lattiud, x.Longtiud, user.Lat, user.Lng)));
 
                 List<Request> AroundScopeRequests = RequestsInScope.FindAll(x =>
-               UserServices.FirstOrDefault(e => e.TypeId == x.SeviceTypeId && ((x.PAge <= e.AgeTo && x.PAge >= e.AgeFrom) || e.AgeFrom == -1)) != null &&
+               UserServices.FirstOrDefault(e => e.TypeId == x.SeviceTypeId && x.SenderId != e.UserId && ((x.PAge <= e.AgeTo && x.PAge >= e.AgeFrom) || e.AgeFrom == -1)) != null &&
                (1 < CalculateDistance(x.Lattiud, x.Longtiud, user.Lat, user.Lng) && 3 >= CalculateDistance(x.Lattiud, x.Longtiud, user.Lat, user.Lng)));
 
                 foreach (Request request in InScopeRequests)
