@@ -140,7 +140,7 @@ namespace HealthCareServiceApi.Controllers
             {
                 Service service = ServiceUnit.Service.GetById(id);
                 service.IsActive = true;
-                ServiceUnit.Service.SaveChanges();  
+                ServiceUnit.Service.SaveChanges();
                 return Ok();
             }
             catch (Exception e)
@@ -160,7 +160,7 @@ namespace HealthCareServiceApi.Controllers
                 List<Service> services = ServiceUnit.Service.GetAll(x => x.UserId == service.UserId).ToList();
                 User user = ServiceUnit.Users.GetUserBy(x => x.Id == service.UserId);
 
-                if(services.Count == 1 && !user.Role.Equals("Admin"))
+                if (services.Count == 1 && !user.Role.Equals("Admin"))
                 {
                     user.Role = "User";
                     ServiceUnit.Users.SaveChanges();
@@ -339,12 +339,11 @@ namespace HealthCareServiceApi.Controllers
                 }
                 List<Request> InScopeRequests = RequestsInScope.FindAll(x =>
                 UserServices.FirstOrDefault(e => e.TypeId == x.SeviceTypeId && ((x.PAge <= e.AgeTo && x.PAge >= e.AgeFrom) || e.AgeFrom == -1)) != null &&
-                (1000 >= CalculateDistance(x.Lattiud, x.Longtiud, user.Lat, user.Lng)));
+                (1 >= CalculateDistance(x.Lattiud, x.Longtiud, user.Lat, user.Lng)));
 
                 List<Request> AroundScopeRequests = RequestsInScope.FindAll(x =>
-                         UserServices.FirstOrDefault(e => e.TypeId == x.SeviceTypeId && x.PAge <= e.AgeTo && x.PAge >= e.AgeFrom) != null &&
-                        (1000 < CalculateDistance(x.Lattiud, x.Longtiud, user.Lat, user.Lng)) &&
-                        (3000 >= CalculateDistance(x.Lattiud, x.Longtiud, user.Lat, user.Lng)));
+               UserServices.FirstOrDefault(e => e.TypeId == x.SeviceTypeId && ((x.PAge <= e.AgeTo && x.PAge >= e.AgeFrom) || e.AgeFrom == -1)) != null &&
+               (1 < CalculateDistance(x.Lattiud, x.Longtiud, user.Lat, user.Lng) && 3 >= CalculateDistance(x.Lattiud, x.Longtiud, user.Lat, user.Lng)));
 
                 foreach (Request request in InScopeRequests)
                 {

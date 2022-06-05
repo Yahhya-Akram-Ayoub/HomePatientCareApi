@@ -83,8 +83,57 @@ namespace HealthCareServiceApi.Controllers
                 }
                 else
                 {
+                    // block service
+                    List<Service> services = ServiceUnit.Service.GetAll(x => x.UserId == user.Id).ToList();
+                    foreach (Service service in services)
+                    {
+                        service.IsActive = false;
+                    }
+                    ServiceUnit.Service.SaveChanges();
+
+                    // block asked rquest
+                    List<Request> requests = ServiceUnit.Request.GetAll(x => x.SenderId == user.Id).ToList();
+                    foreach (Request request in requests)
+                    {
+                        request.status = 2;
+                        ServiceUnit.Request.SaveChanges();
+                        if (ServiceUnit.FailedRequest.GetUserBy(x => x.RequestId == request.Id).Id == 0)
+                        {
+                            FailedRequest failReqs = new FailedRequest()
+                            {
+                                RequestId = request.Id,
+                                Date = new DateTime(),
+                                Reason = "تم حظر طالب الخدمة"
+                            };
+                            ServiceUnit.FailedRequest.Add(failReqs);
+                        }
+                    }
+
+
+                    // block accepted rquest
+                    List<AcceptedRequest> AcceptedRequests = ServiceUnit.AcceptedRequest.GetAll(x => x.VolunteerId == CurrentUser.Id).ToList();
+                    foreach (AcceptedRequest acr in AcceptedRequests)
+                    {
+                        Request request = ServiceUnit.Request.GetById(acr.RequestId);
+                        request.status = 2;
+                        ServiceUnit.Request.SaveChanges();
+
+                        if (ServiceUnit.FailedRequest.GetUserBy(x => x.RequestId == acr.RequestId).Id == 0)
+                        {
+
+                            FailedRequest failReqs = new FailedRequest()
+                            {
+                                RequestId = request.Id,
+                                Date = new DateTime(),
+                                Reason = "تم حظر مقدم الخدمة"
+                            };
+                            ServiceUnit.FailedRequest.Add(failReqs);
+                        }
+                    }
+
                     user.Role = "Block";
                 }
+
                 ServiceUnit.Users.SaveChanges();
                 return Ok();
             }
@@ -99,18 +148,20 @@ namespace HealthCareServiceApi.Controllers
         [Authorize]
         public IActionResult GetBlocedkUsers()
         {
-            try {
+            try
+            {
 
                 List<User> users = ServiceUnit.Users.GetAll(x => x.Role == "Block").ToList();
                 return Ok(users);
             }
-            catch (Exception e) {
+            catch (Exception e)
+            {
                 return BadRequest(e.Message.ToString());
             }
-          
+
         }
 
-       [Route("SaveImage")]
+        [Route("SaveImage")]
         [HttpPost]
         [Authorize]
         public IActionResult SaveImage(List<IFormFile> battlePlans)

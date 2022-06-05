@@ -43,6 +43,10 @@ namespace HealthCareServiceApi.Controllers
                 {
                     string token = _JWTService.GenerateToken(user);
                     User _user = ServiceUnit.Users.GetUserBy(x => x.Email == user.Email);
+                    if(user.Role == "Block")
+                    {
+                        return Ok("تم حظر المستخدم");
+                    }
                     return Ok(new JsonResult(new { token, user }));
                 }
             }
