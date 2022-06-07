@@ -741,7 +741,7 @@ namespace HealthCareServiceApi.Controllers
                         RequestId = req.Id,
                         UserId = user.Id,
                         UserReportedId = _service.UserId,
-                        Description = Evaluation,
+                        Description = Evaluation ?? "Repost",
                         Type = _service.UserId == user.Id ? 2 : 1
                     };
                     ServiceUnit.Report.Add(_report);
