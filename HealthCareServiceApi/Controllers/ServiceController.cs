@@ -819,7 +819,9 @@ namespace HealthCareServiceApi.Controllers
             {
 
                 Request req = ServiceUnit.Request.GetById(Id);
+                Service _service = ServiceUnit.Service.GetUserBy(x => x.UserId == CurrentUser.Id && req.SeviceTypeId == x.TypeId);
                 req.status = 1;
+                req.ServiceId = _service.Id;
                 ServiceUnit.Request.SaveChanges();
 
                 AcceptedRequest acr = new AcceptedRequest()
