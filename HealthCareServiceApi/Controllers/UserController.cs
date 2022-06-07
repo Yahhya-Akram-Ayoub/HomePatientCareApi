@@ -119,7 +119,8 @@ namespace HealthCareServiceApi.Controllers
                         request.status = 2;
                         ServiceUnit.Request.SaveChanges();
 
-                        if (ServiceUnit.FailedRequest.GetUserBy(x => x.RequestId == acr.RequestId).Id == 0)
+                        FailedRequest ff_req = ServiceUnit.FailedRequest.GetUserBy(x => x.RequestId == acr.RequestId);
+                        if (ff_req?.Id == 0)
                         {
 
                             FailedRequest failReqs = new FailedRequest()
